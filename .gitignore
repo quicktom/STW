@@ -1,5 +1,5 @@
 # All files in data folder
-data/
+data/naif
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
