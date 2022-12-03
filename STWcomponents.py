@@ -42,22 +42,33 @@ class components(STWobject.stwObject):
         self.log.info("Start configuration phase.")
 
         self.astro.Config()
+        self.uc.Config()
 
         return super().Config()
 
     def PreLoop(self):
         self.log.info("Start preloop phase.")
 
-    def Loop(self):
-        self.log.info("Start loop phase.")
-
-        # get inputs form user and Stellarium
-
-        # set outputs motors and stellarium
-
-
     def ExitLoop(self):
         self.log.info("Start exit loop phase.")
 
     def Shutdown(self):
         self.log.info("Start shutdown phase.")
+        
+        self.astro.Shutdown()
+        self.uc.Shutdown()
+
+    def Loop(self):
+        self.log.info("Start loop phase.")
+
+        loop = True    
+
+        while loop:
+        # get inputs form user and Stellarium
+            keypad = self.uc.getEvent()
+
+            if keypad:
+                if keypad == 'S2':
+                    loop = False
+
+        # set outputs motors and stellarium
