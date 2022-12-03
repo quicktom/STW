@@ -19,6 +19,7 @@ __status__ = "alpha"
 class stwObject:
         log = None
         isInitialized = False
+        isConfigured = False
 
         def __init__(self, logger):
             self.log = logger
@@ -40,6 +41,5 @@ class stwObject:
 
         def Shutdown(self):
             pass
-
 
 

@@ -40,6 +40,9 @@ class components(STWobject.stwObject):
 
     def Config(self):
         self.log.info("Start configuration phase.")
+
+        self.astro.Config()
+
         return super().Config()
 
     def PreLoop(self):
