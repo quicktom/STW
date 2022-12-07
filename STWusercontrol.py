@@ -22,8 +22,7 @@ import STWobject
 import ctypes
 ctypes.CDLL('./hidapi/x64/hidapi.dll')
 
-import hid, struct, queue
-
+import hid, struct, queue, threading
 
 # ubuntu
 # sudo chmod a+rw /dev/hidraw5
@@ -67,84 +66,110 @@ class uc(STWobject.stwObject):
         self.button_S1 = self.KEY_RELEASED
         self.button_S2 = self.KEY_RELEASED
 
+        self.XCOORD = 0
+        self.XCOORD_CHANGED = False
+        self.YCOORD = 0
+        self.YCOORD_CHANGED = False
+
         self.JOY_STICK_X = self.JOY_STICK_AXIS_X_CENTER
         self.JOY_STICK_Y = self.JOY_STICK_AXIS_Y_CENTER
 
         self.JOY_STICK_X_S = self.JOY_STICK_AXIS_X_S_IDLE
         self.JOY_STICK_Y_S = self.JOY_STICK_AXIS_Y_S_IDLE
+ 
 
-        self.log.info('Switch on Auvisio game controler and press @+B for game mode!')
+        self.log.info('Switch on controler and press @+B for game mode.')
 
         self.PollDataQuene = queue.Queue()
+        self.exitthread = threading.Event()              
+        self.getEventThread  = threading.Thread(target=self.getEvent)
+        self.getEventThread.start()
 
-        # try open device
-        try:
-            self.h = hid.Device(vid = self.vid, pid = self.pid, path = self.path)
-        except:
-            pass
-
+        self.h = False
+        self.supressretry = False 
+        
         self.isConfigured = True
 
         return super().Config()
 
     def Shutdown(self):
-        self.h.close()
         self.isConfigured = False
+      
+        self.exitthread.set()
+        self.getEventThread.join()
+
         return super().Shutdown()
 
     def getEvent(self):
 
-        try:
-            # fetch event data
-            data = self.h.read(size = 9, timeout= 0)
-        except:
-            # try open device
+        while not self.exitthread.is_set():
             try:
-                self.h = hid.Device(vid = self.vid, pid = self.pid, path = self.path)
+                if self.h:
+                    data = self.h.read(size = 9, timeout= 0)
+                else:
+                    # device is not open or something
+                    self.h = False
+
+                    raise Exception                    
             except:
-                pass
-            
-            return False
+                # try open device
+                try:
+                    if not self.supressretry:
+                        self.log.info("Try to open HID device.")
 
-        # if event data then decode, serialize and put to quene                    
-        if self.decode(data):        
-            if self.button_A:
-                self.PollDataQuene.put('A', block = False)
+                    self.h = hid.Device(vid = self.vid, pid = self.pid, path = self.path)
+                except:
+                    # if can not open device then try again 
+                    self.supressretry = True 
+                    continue
+                else:
+                    self.log.info("HID device is open. Press @ + B for game mode.")
+                    self.supressretry = False                                   
+                    continue
+            else:
+                # if data is empty then try again
+                if not data:
+                    continue
 
-            if self.button_B:
-                self.PollDataQuene.put('B', block = False)
+            # if event data then decode, serialize and put to quene                    
+            if self.decode(data):        
+                if self.button_A:
+                    self.PollDataQuene.put('A', block = False)
+
+                if self.button_B:
+                    self.PollDataQuene.put('B', block = False)
+                    
+                if self.button_C:
+                    self.PollDataQuene.put('C', block = False)
                 
-            if self.button_C:
-                self.PollDataQuene.put('C', block = False)
-            
-            if self.button_D:
-                self.PollDataQuene.put('D', block = False)
-            
-            if self.button_S1:
-                self.PollDataQuene.put('S1', block = False)
-            
-            if self.button_S2:
-                self.PollDataQuene.put('S2', block = False)
-               
-            if self.JOY_STICK_X_S == self.JOY_STICK_AXIS_X_LEFT:
-                self.PollDataQuene.put('XL',  block = False)
-            elif self.JOY_STICK_X_S == self.JOY_STICK_AXIS_X_RIGHT:
-                self.PollDataQuene.put('XR',  block = False)
-            elif self.JOY_STICK_X_S == self.JOY_STICK_AXIS_X_CENTER:
-                self.PollDataQuene.put('XC',  block = False)
+                if self.button_D:
+                    self.PollDataQuene.put('D', block = False)
+                
+                if self.button_S1:
+                    self.PollDataQuene.put('S1', block = False)
+                
+                if self.button_S2:
+                    self.PollDataQuene.put('S2', block = False)
+                
+                if self.JOY_STICK_X_S == self.JOY_STICK_AXIS_X_LEFT:
+                    self.PollDataQuene.put('XL',  block = False)
+                elif self.JOY_STICK_X_S == self.JOY_STICK_AXIS_X_RIGHT:
+                    self.PollDataQuene.put('XR',  block = False)
+                elif self.JOY_STICK_X_S == self.JOY_STICK_AXIS_X_CENTER:
+                    self.PollDataQuene.put('XC',  block = False)
 
-            if self.JOY_STICK_Y_S == self.JOY_STICK_AXIS_Y_UP:
-                self.PollDataQuene.put('YU',  block = False)
-            elif self.JOY_STICK_Y_S == self.JOY_STICK_AXIS_Y_DOWN:
-                self.PollDataQuene.put('YD',  block = False)
-            elif self.JOY_STICK_Y_S == self.JOY_STICK_AXIS_Y_CENTER:
-                self.PollDataQuene.put('YC',  block = False)
+                if self.JOY_STICK_Y_S == self.JOY_STICK_AXIS_Y_UP:
+                    self.PollDataQuene.put('YU',  block = False)
+                elif self.JOY_STICK_Y_S == self.JOY_STICK_AXIS_Y_DOWN:
+                    self.PollDataQuene.put('YD',  block = False)
+                elif self.JOY_STICK_Y_S == self.JOY_STICK_AXIS_Y_CENTER:
+                    self.PollDataQuene.put('YC',  block = False)
 
-        # pull out events from quene till it is empty
-        if self.PollDataQuene.empty():
-            return False
-        else:
-            return self.PollDataQuene.get(block=False)
+                if self.XCOORD_CHANGED:
+                    self.PollDataQuene.put('X' + str(self.XCOORD),  block = False)
+
+                if self.YCOORD_CHANGED:
+                    self.PollDataQuene.put('Y' + str(self.YCOORD),  block = False)
 
     def decode(self, data):
         if len(data) == 9:
@@ -157,6 +182,20 @@ class uc(STWobject.stwObject):
                 # state
                 self.JOY_STICK_X = self.JOY_STICK_AXIS_X_RIGHT  if cdata[1] < 64 else self.JOY_STICK_AXIS_X_LEFT if cdata[1] > 192 else self.JOY_STICK_AXIS_X_CENTER
                 self.JOY_STICK_Y = self.JOY_STICK_AXIS_Y_UP     if cdata[0] < 64 else self.JOY_STICK_AXIS_Y_DOWN if cdata[0] > 192 else self.JOY_STICK_AXIS_Y_CENTER
+
+                # stick coordinates
+                if self.XCOORD != cdata[1]:
+                    self.XCOORD = cdata[1]
+                    self.XCOORD_CHANGED = True
+                else:
+                    self.XCOORD_CHANGED = False
+                
+                if self.YCOORD != cdata[0]:
+                    self.YCOORD = cdata[0]
+                    self.YCOORD_CHANGED = True
+                else:
+                    self.YCOORD_CHANGED = False
+
 
                 # one shot detect on joystick
                 if X_S != self.JOY_STICK_X:
@@ -181,6 +220,13 @@ class uc(STWobject.stwObject):
         else:
             return False
 
+    def listen(self):
+         # pull out events from quene till it is empty
+        if self.PollDataQuene.empty():
+            return False
+        else:
+            return self.PollDataQuene.get(block=False)
+
 import logging
 
 def main():
@@ -191,12 +237,11 @@ def main():
     
     while True:
 
-            ret = g.getEvent()
+            ret = g.listen()
             if ret:
                 print(ret)
                 if ret == 'S2':
                     g.Shutdown()
-
                     return
     
 

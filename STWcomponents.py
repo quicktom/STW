@@ -65,10 +65,11 @@ class components(STWobject.stwObject):
 
         while loop:
         # get inputs form user and Stellarium
-            keypad = self.uc.getEvent()
+            remote = self.uc.listen()
 
-            if keypad:
-                if keypad == 'S2':
+            if remote:
+                self.log.debug('User remote command ' + remote)
+                if remote == 'S2':
                     loop = False
 
         # set outputs motors and stellarium
