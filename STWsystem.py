@@ -18,8 +18,33 @@ __status__ = "alpha"
 
 import STWobject
 
+import ntplib
+
 class sys(STWobject.stwObject):
 
     def Init(self):
         self.log.info("Initialize STWsystem.")
+        
         return super().Init()
+
+    def GetNtpOffsetSec(self):
+        try:
+            response = ntplib.NTPClient().request('europe.pool.ntp.org', version=3)
+        except:
+            return [False, 0]
+        # if positive offset then server is offset secs ahead of system time
+        return [True, response.offset]
+
+import logging
+
+def main():
+
+    g = sys(logging.getLogger())
+
+    g.Config()
+    
+    print(g.GetNtpOffsetSec())
+    
+
+if __name__ == "__main__":
+    main()

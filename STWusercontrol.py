@@ -80,13 +80,13 @@ class uc(STWobject.stwObject):
 
         self.log.info('Switch on controler and press @+B for game mode.')
 
+        self.h = False
+        self.supressretry = False 
+
         self.PollDataQuene = queue.Queue()
         self.exitthread = threading.Event()              
         self.getEventThread  = threading.Thread(target=self.getEvent)
         self.getEventThread.start()
-
-        self.h = False
-        self.supressretry = False 
         
         self.isConfigured = True
 
@@ -108,21 +108,20 @@ class uc(STWobject.stwObject):
                     data = self.h.read(size = 9, timeout= 0)
                 else:
                     # device is not open or something
-                    self.h = False
-
                     raise Exception                    
             except:
                 # try open device
+                if not self.supressretry:
+                    self.log.info("Try to open HID device.")           
                 try:
-                    if not self.supressretry:
-                        self.log.info("Try to open HID device.")
-
                     self.h = hid.Device(vid = self.vid, pid = self.pid, path = self.path)
                 except:
-                    # if can not open device then try again 
+                    # if can not open device then try again
+                    self.h = False 
                     self.supressretry = True 
                     continue
                 else:
+                    # ToDo Device can be opened but may not be present actually ?
                     self.log.info("HID device is open. Press @ + B for game mode.")
                     self.supressretry = False                                   
                     continue
@@ -165,11 +164,12 @@ class uc(STWobject.stwObject):
                 elif self.JOY_STICK_Y_S == self.JOY_STICK_AXIS_Y_CENTER:
                     self.PollDataQuene.put('YC',  block = False)
 
-                if self.XCOORD_CHANGED:
-                    self.PollDataQuene.put('X' + str(self.XCOORD),  block = False)
+                # controler coords not good at all
+                # if self.XCOORD_CHANGED:
+                #     self.PollDataQuene.put('X' + str(self.XCOORD),  block = False)
 
-                if self.YCOORD_CHANGED:
-                    self.PollDataQuene.put('Y' + str(self.YCOORD),  block = False)
+                # if self.YCOORD_CHANGED:
+                #     self.PollDataQuene.put('Y' + str(self.YCOORD),  block = False)
 
     def decode(self, data):
         if len(data) == 9:

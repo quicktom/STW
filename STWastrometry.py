@@ -47,12 +47,12 @@ class astro(STWobject.stwObject):
     def GetUTCNowTimeStringNow(self):
         return datetime.now().utcnow().strftime("%Y-%m-%d %H:%M:%S.%f") + " (UTC)"
 
-    def GetSecPastJ2000TDBNow(self, str = None):
+    def GetSecPastJ2000TDBNow(self, str = None, offset = 0):
         if str:
             et = spiceypy.str2et(str)
         else:
             et = spiceypy.str2et(self.GetUTCNowTimeStringNow())
-        return et
+        return et + offset
 
     def RaDeJ20002LonLatAzmimutal(self, et, ra_deg, de_deg):
         __, Lon, Lat = spiceypy.recrad(spiceypy.mxv(spiceypy.pxform('J2000', 'AZ_TOPO', et), \

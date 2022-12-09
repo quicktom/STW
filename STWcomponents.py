@@ -28,6 +28,8 @@ class components(STWobject.stwObject):
         self.motors     = STWmotors.motors(self.log)
         self.stellarium = STWstellarium.stellarium(self.log)
 
+        self.TimeOffsetSec = 0
+
 # start basic initialisation phase
     def Init(self):
         self.log.info("Start basic initialisation phase.")
@@ -35,14 +37,24 @@ class components(STWobject.stwObject):
         self.sys.Init()
         self.astro.Init()
         self.motors.Init()
-        self.uc.Init()
         self.stellarium.Init()
+        self.uc.Init()
 
     def Config(self):
         self.log.info("Start configuration phase.")
 
         self.astro.Config()
         self.uc.Config()
+        self.sys.Config()
+        self.uc.Config()
+
+        # try to get time offset to system time via NTP
+        ret = self.sys.GetNtpOffsetSec()
+        self.TimeOffsetSec = ret[1]
+        if ret[0]:
+            self.log.info("Time offset to NTP Server is %3.2fs", self.TimeOffsetSec)
+        else:   
+            self.log.info("Unable to detect time offset to NTP Server")
 
         return super().Config()
 
@@ -64,6 +76,8 @@ class components(STWobject.stwObject):
         loop = True    
 
         while loop:
+        # collect data
+         
         # get inputs form user and Stellarium
             remote = self.uc.listen()
 

@@ -17,9 +17,19 @@ __status__ = "alpha"
 """
 import STWobject
 
+import struct, socket, select, threading, logging, queue
+
 class stellarium(STWobject.stwObject):
 
     def Init(self):
         self.log.info("Initialize Stellarium.")
+
+        # self.listening_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM | socket.SOCK_NONBLOCK)
+        # self.listening_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # self.listening_socket.bind( ("", 10001) )
+
+
         return super().Init()
 
+    def listen():
+        pass
