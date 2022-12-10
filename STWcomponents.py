@@ -18,6 +18,8 @@ __status__ = "alpha"
 
 import STWobject, STWsystem, STWastrometry, STWmotors, STWusercontrol, STWstellarium
 
+import time
+
 class components(STWobject.stwObject):
     def __init__(self, logger):
         super().__init__(logger)
@@ -47,6 +49,7 @@ class components(STWobject.stwObject):
         self.uc.Config()
         self.sys.Config()
         self.uc.Config()
+        self.stellarium.Config()
 
         # try to get time offset to system time via NTP
         ret = self.sys.GetNtpOffsetSec()
@@ -69,15 +72,18 @@ class components(STWobject.stwObject):
         
         self.astro.Shutdown()
         self.uc.Shutdown()
+        self.stellarium.Shutdown()
 
     def Loop(self):
         self.log.info("Start loop phase.")
 
         loop = True    
 
+        ra = 0
+        de = 0
         while loop:
         # collect data
-         
+            time.sleep(1)             
         # get inputs form user and Stellarium
             remote = self.uc.listen()
 
@@ -85,5 +91,10 @@ class components(STWobject.stwObject):
                 self.log.debug('User remote command ' + remote)
                 if remote == 'S2':
                     loop = False
+
+            ret, ra, de  = self.stellarium.ReceiveFromStellarium()
+            if ret:
+                self.stellarium.SendToStellarium(ra, de)
+
 
         # set outputs motors and stellarium
