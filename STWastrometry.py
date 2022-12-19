@@ -5,25 +5,19 @@ This module abstracts astrometry functions.
 
 Todo:
 
-__author__ = "Thomas Rinder"
-__copyright__ = "Copyright 2023, The observator Group"
-__credits__ = ["Thomas Rinder"]
-__license__ = "GPL"
-__version__ = "0.1.0"
-__maintainer__ = "Thomas Rinder"
-__email__ = "thomas.rinder@fh-kiel.de"
-__status__ = "alpha"
-
 """
 
 import STWobject
 
 import spiceypy
 from datetime   import datetime
-from math       import floor
+from math       import floor, fabs
+
 
 class astro(STWobject.stwObject):
     
+    kernelLoaded = False    # treat as static to prevent loading kernels multiple times
+
     def Init(self):
         self.log.info("Initialize Astrometry.")
         return super().Init()
@@ -31,35 +25,48 @@ class astro(STWobject.stwObject):
     def Config(self, fname = 'standart.tm'):
         self.log.info("Load text kernel " + fname + " for spiceypy.")
         
-        try:
-            spiceypy.furnsh(fname)
-        except:
-            self.log.error("Failed to load text kernel " + fname)
-        else:
-            self.isConfigured = True
+        if not self.kernelLoaded:
+            try:
+                spiceypy.furnsh(fname)
+            except:
+                self.log.error("Failed to load text kernel " + fname)
+            else:
+                self.isConfigured = True
+                self.kernelLoaded = True
 
         return super().Config()
 
     def Shutdown(self):
-        spiceypy.kclear()
+        if self.kernelLoaded:
+            spiceypy.kclear()
+            self.kernelLoaded = False
+
         return super().Shutdown()
 
-    def GetUTCNowTimeStringNow(self):
+    @staticmethod
+    def GetUTCNowTimeStringNow():
+        # Get date time string in UTC frame
         return datetime.now().utcnow().strftime("%Y-%m-%d %H:%M:%S.%f") + " (UTC)"
 
-    def GetSecPastJ2000TDBNow(self, str = None, offset = 0):
+    @staticmethod
+    def GetSecPastJ2000TDBNow(str = None, offset = 0):
+        # Get secs past epoch 2000 in TDB
         if str:
             et = spiceypy.str2et(str)
         else:
             et = spiceypy.str2et(self.GetUTCNowTimeStringNow())
         return et + offset
 
-    def RaDeJ20002LonLatAzmimutal(self, et, ra_deg, de_deg):
+    @staticmethod
+    def RaDeJ20002LonLatAzmimutal(et, ra_deg, de_deg):
+        # Get oberserver longitude, latidue in local from ra, de in J2000 frame
         __, Lon, Lat = spiceypy.recrad(spiceypy.mxv(spiceypy.pxform('J2000', 'AZ_TOPO', et), \
             spiceypy.latrec(1, ra_deg * spiceypy.rpd(), de_deg* spiceypy.rpd())));  
         return Lon * spiceypy.dpr(), Lat * spiceypy.dpr()
 
-    def RaDeJ20002LonLatTelescope(self, et, ra_deg, de_deg, Aligned2WestPier = True):
+    @staticmethod
+    def RaDeJ20002LonLatTelescope(et, ra_deg, de_deg, Aligned2WestPier = True):
+        # Get telescope longitude, latidue from ra, de in J2000 frame
         if Aligned2WestPier:
             frame = 'WEST_TOPO'
         else:
@@ -74,7 +81,9 @@ class astro(STWobject.stwObject):
 
         return Lon * spiceypy.dpr(), Lat * spiceypy.dpr()
 
-    def LonLatTelescope2RaDeJ2000(self, et, Lon_deg, Lat_deg, Aligned2WestPier = True):
+    @staticmethod
+    def LonLatTelescope2RaDeJ2000(et, Lon_deg, Lat_deg, Aligned2WestPier = True):
+        # Get ra,de in J2000 frame from telescope longitude, latitude
         if Aligned2WestPier:
             frame = 'WEST_TOPO'
         else:
@@ -84,13 +93,16 @@ class astro(STWobject.stwObject):
             spiceypy.latrec(1, Lon_deg * spiceypy.rpd(), Lat_deg* spiceypy.rpd()))); 
         return ra * spiceypy.dpr(), de * spiceypy.dpr()
 
-    def SPK2RaDeJ2000(self, et, idstr):
+    @staticmethod
+    def SPK2RaDeJ2000(et, idstr):
+        # Get ra, de in J2000 frame from SPK object
         pos, __ = spiceypy.spkpos(idstr, et, 'J2000', 'lt+s', 'KIELSTW')
         __, ra, de = spiceypy.recrad(pos)
         return ra * spiceypy.dpr(), de * spiceypy.dpr()
 
-
-    def ddeg2dms(self, a, chdeg = 'd'):
+    @staticmethod
+    def ddeg2dms(a, chdeg = 'd'):
+        # Get string from degree value
         if a >= 0:
             ss = '+'
         else:
@@ -106,52 +118,160 @@ class astro(STWobject.stwObject):
         
         return "{0:s}{1:03d}{degChar}{2:02d}m{3:02d}.{4:02d}s".format(ss, d,  m, s, f, degChar = chdeg)
 
-    def GetJ2000CoordsString(self, ra, de):
-        return self.ddeg2dms(ra/15, chdeg = 'h') + " " + self.ddeg2dms(de)
+    @staticmethod
+    def GetJ2000CoordsString(ra, de):
+        return astro.self.ddeg2dms(ra/15, chdeg = 'h') + " " + astro.ddeg2dms(de)
 
-    def GetTelescopeCoordsString(self, lon, lat):
-        return self.ddeg2dms(lon) + " " + self.ddeg2dms(lat)
+    @staticmethod
+    def GetTelescopeCoordsString(lon, lat):
+        return astro.ddeg2dms(lon) + " " + ddeg2dms(lat)
 
-    def GetAzimutalCoordsString(self, long, lat):
-        return self.ddeg2dms(long) + " " + self.ddeg2dms(lat)
+    @staticmethod
+    def GetAzimutalCoordsString(lon, lat):
+        return astro.ddeg2dms(lon) + " " + astro.ddeg2dms(lat)
         
+class astroguide(STWobject.stwObject):
+
+    def Init(self):
+        self.telescopeIsAligned = False     
+        
+        self.astrometry = astro(self.log)
+        return super().Init()
+
+    def Config(self):
+        self.astrometry.Config()
+        return super().Config()
+
+    def Shutdown(self):
+        self.astrometry.Shutdown()
+        return super().Shutdown()
+
+    def SetTarget(self, et, ra = 0, de = 0, SPKObjectStr = '', Aligned2WestPier = True):
+        # Set target coords from ra, de in J2000 frame or from SPK object 
+        self.Target = lambda:0
+        # Set target coords from ra,de or SPK object
+        self.Target.et = et
+
+        if SPKObjectStr:
+            self.Target.ra, self.Target.de = astro.SPK2RaDeJ2000(et, SPKObjectStr)
+        else:
+            self.Target.ra = ra
+            self.Target.de = de
+        
+        # get telescope coords of target
+        self.Target.lon, self.Target.lat = astro.RaDeJ20002LonLatTelescope(et, self.Target.ra, self.Target.de, Aligned2WestPier)
+
+        # get azimutal coords of target
+        self.Target.Azimut = lambda:0                 
+        self.Target.Azimut.lon, self.Target.Azimut.lat = astro.RaDeJ20002LonLatAzmimutal(et, ra, de)
+        
+
+    def SetActual(self, et, lon, lat, Aligned2WestPier = True):
+        # Set actual coords from telescope frame
+        self.Actual = lambda:0
+        # Set actual coords from telescope lat, lon
+        self.Actual.et = et
+
+        self.Actual.lon = lon
+        self.Actual.lat = lat
+
+        # get actual ra de coords
+        self.Actual.ra, self.Actual.de = astro.LonLatTelescope2RaDeJ2000(et, self.Actual.lon, self.Actual.lat, Aligned2WestPier)
+        
+        # get azimutal coords of target
+        self.Actual.Azimut = lambda:0 
+        self.Actual.Azimut.lon, self.Actual.Azimut.lat = astro.RaDeJ20002LonLatAzmimutal(et, self.Actual.ra, self.Actual.de)
+ 
+    def AngularSeparation(self):
+        # Get angular separation between target and actual coords
+        return spiceypy.vsep(spiceypy.latrec(1, self.Target.ra * spiceypy.rpd(), self.Target.de * spiceypy.rpd()), 
+        spiceypy.latrec(1, self.Actual.ra * spiceypy.rpd(), self.Actual.de * spiceypy.rpd())) * spiceypy.dpr()
+
+    def EstimateSlewingTime(self, londps, latdps):
+        # Estimate slewing time from actual to target coord position based on average speeds
+        # latps, lonps is in degrees per sec
+        dlonTime = fabs(self.Target.lon - self.Actual.lon) / londps
+        dlatTime = fabs(self.Target.lat - self.Actual.lat) / latdps
+        return dlonTime, dlatTime
+
+    def EstimateTargetAngularSpeed(self, dtsec = 1, Aligned2WestPier = True):
+        # Estimate angular speed of target in degrees per sec
+        tlon, tlat = astro.RaDeJ20002LonLatTelescope(self.Target.et + dtsec, 
+            self.Target.ra, self.Target.de, Aligned2WestPier) 
+
+        return (tlon - self.Target.lon)/dtsec, (tlat - self.Target.lat)/dtsec 
+
+    def EstimateSlewingToTargetAngles(self, londps, latdps, Aligned2WestPier = True, dtsec = 1):
+        # First order estimate of slewing angles from actual to target coords
+        # assuming target ra, de coords are constant.
+        #
+        # If slewing takes a long time then target coords are changing.
+        # So the telescope should slew to extimated coords of target.
+        tlondps, tlatdps = self.EstimateTargetAngularSpeed(dtsec, Aligned2WestPier)
+        ts = max(self.EstimateSlewingTime(londps, latdps))
+        return self.Target.lon + ts * tlondps, self.Target.lat + ts * tlatdps
+
 import logging
 
 def main():
 
-    a = astro(logging.getLogger())
+    # a = astro(logging.getLogger())
     
-    a.Config()
+    # a.Config()
 
-    timeStr = "2022-12-03 12:00:03.318539 (UTC+1)"  # a.GetUTCNowTimeStringNow()
+    # timeStr =  a.GetUTCNowTimeStringNow() #"2022-12-03 12:00:03.318539 (UTC+1)"  #
 
-    print(timeStr)
+    # print(timeStr)
 
-    et = a.GetSecPastJ2000TDBNow(timeStr)
+    # et = a.GetSecPastJ2000TDBNow(timeStr)
 
-    ra, de = a.SPK2RaDeJ2000(et, 'sun')
+    # ra, de = a.SPK2RaDeJ2000(et, 'sun')
 
-    print("Object J2000    : " + a.GetJ2000CoordsString(ra, de))
+    # print("Object J2000    : " + a.GetJ2000CoordsString(ra, de))
 
-    lon, lat = a.RaDeJ20002LonLatAzmimutal(et, ra, de)
+    # lon, lat = a.RaDeJ20002LonLatAzmimutal(et, ra, de)
 
-    print("Object Azimutal : " + a.GetAzimutalCoordsString(lon, lat))
+    # print("Object Azimutal : " + a.GetAzimutalCoordsString(lon, lat))
 
-    lon, lat = a.RaDeJ20002LonLatTelescope(et, ra, de)
+    # lon, lat = a.RaDeJ20002LonLatTelescope(et, ra, de)
 
-    print("Object Telescope: " + a.GetTelescopeCoordsString(lon, lat))
+    # print("Object Telescope: " + a.GetTelescopeCoordsString(lon, lat))
 
-    ra, de = a.LonLatTelescope2RaDeJ2000(et, lon, lat)
+    # ra, de = a.LonLatTelescope2RaDeJ2000(et, lon, lat)
 
-    print("Object J2000    : " + a.GetJ2000CoordsString(ra, de) + " from lon, lat telescope")
+    # print("Object J2000    : " + a.GetJ2000CoordsString(ra, de) + " from lon, lat telescope")
 
-    lon, lat = a.RaDeJ20002LonLatTelescope(et, ra, de, False)
+    # lon, lat = a.RaDeJ20002LonLatTelescope(et, ra, de, False)
  
-    print("Object Telescope: " + a.GetTelescopeCoordsString(lon, lat) + " East Pier")
+    # print("Object Telescope: " + a.GetTelescopeCoordsString(lon, lat) + " East Pier")
 
-    ra, de = a.LonLatTelescope2RaDeJ2000(et, lon, lat, False)
+    # ra, de = a.LonLatTelescope2RaDeJ2000(et, lon, lat, False)
 
-    print("Object J2000    : " + a.GetJ2000CoordsString(ra, de) + " from East Pier and lon, lat telescope")
+    # print("Object J2000    : " + a.GetJ2000CoordsString(ra, de) + " from East Pier and lon, lat telescope")
+
+    # a.Shutdown()
+
+    g = astroguide(logging.getLogger())
+    
+    g.Init()
+
+    g.Config()
+
+    et =  astro.GetSecPastJ2000TDBNow(astro.GetUTCNowTimeStringNow())
+
+    g.SetTarget(et, SPKObjectStr='sun')
+
+    g.SetActual(et, 0, 0)
+
+    print(g.AngularSeparation())
+
+    print(g.EstimateSlewingTime(0.1,0.1))
+
+    print(g.EstimateTargetAngularSpeed())
+
+    print(g.EstimateSlewingToTargetAngles(0.1,0.1))
+
+    g.Shutdown()
 
 if __name__ == "__main__":
     main()

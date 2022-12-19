@@ -59,6 +59,9 @@ class components(STWobject.stwObject):
         else:   
             self.log.info("Unable to detect time offset to NTP Server")
 
+        self.telescope_ra = 0
+        self.telescope_de = 0
+
         return super().Config()
 
     def PreLoop(self):
@@ -79,11 +82,11 @@ class components(STWobject.stwObject):
 
         loop = True    
 
-        ra = 0
-        de = 0
+        ra_a = 0
+        de_a = 0
         while loop:
         # collect data
-            time.sleep(1)             
+                         
         # get inputs form user and Stellarium
             remote = self.uc.listen()
 
@@ -94,7 +97,12 @@ class components(STWobject.stwObject):
 
             ret, ra, de  = self.stellarium.ReceiveFromStellarium()
             if ret:
-                self.stellarium.SendToStellarium(ra, de)
+                ra_a = ra
+                de_a = de
+            
+            time.sleep(0.5)
+
+            self.stellarium.SendToStellarium(ra_a, de_a)
 
 
         # set outputs motors and stellarium

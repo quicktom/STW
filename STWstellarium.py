@@ -59,7 +59,7 @@ DEC    (4 bytes,signed integer): declination of the telescope (J2000)
 
 import STWobject
 
-import struct, socket, select, threading, logging, queue
+import struct, socket, select, threading, logging, queue, datetime, time
 
 class stellarium(STWobject.stwObject):
 
@@ -126,18 +126,18 @@ class stellarium(STWobject.stwObject):
                     if not data:
                         # if no data was returned then close connection
                         with self.open_sockets_lock:
-                            self.open_sockets.remove(i)
-                        
+                            self.open_sockets.remove(i)                        
                         i.close()
                         self.log.info("Connection closed to Stellarium")                           
                     else:
+
                         if len(data) == struct.calcsize("3iIi"): 
-                            data = struct.unpack("3iIi", data)
+                            data = struct.unpack("=hhQIi", data)
                             
                             ra = float(data[3]*(180.0/0x80000000))
                             de = float(data[4]*( 90.0/0x40000000))
 
-                            self.listenQuene.put([ra, de], block=False)
+                            self.listenQuene.put([ra,de])
                         else:
                             self.log.debug("Stellarium connection wrong data received.")                            
 
@@ -151,12 +151,12 @@ class stellarium(STWobject.stwObject):
                     ra = int(ret[0]*(0x80000000/180.0))
                     de = int(ret[1]*(0x40000000/ 90.0))
 
-                    status = struct.pack("3iIii", 24, 0, 0, ra, de, 0)
+                    status = struct.pack("=hhQIii", 24, 0, 0, ra, de, 0)
 
                     # send data to all open connections
                     with self.open_sockets_lock:    
                         for i in self.open_sockets:
-                            i.send(status)      
+                            i.send(status)
 
     def Shutdown(self):
         self.isConfigured = False
@@ -179,15 +179,23 @@ import logging
 
 def main():
 
+
     g = stellarium(logging.getLogger())
 
     g.Config()
+
+    ra_a = 0
+    de_a = 0
 
     while True:
         
         ret, ra, de = g.ReceiveFromStellarium()
         if ret:
-            g.SendToStellarium(ra, de)
+            ra_a = ra
+            de_a = de
+            
+        time.sleep(0.5)        
+        g.SendToStellarium(ra_a, de_a)
 
     g.Shutdown()
         
