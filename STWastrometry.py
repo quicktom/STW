@@ -54,7 +54,7 @@ class astro(STWobject.stwObject):
         if str:
             et = spiceypy.str2et(str)
         else:
-            et = spiceypy.str2et(self.GetUTCNowTimeStringNow())
+            et = spiceypy.str2et(astro.GetUTCNowTimeStringNow())
         return et + offset
 
     @staticmethod

@@ -7,9 +7,11 @@ Todo:
 
 """
 
-import STWobject, STWsystem, STWastrometry, STWmotors, STWusercontrol, STWstellarium
+import STWobject, STWsystem, STWastrometry, STWmotors, STWusercontrol, STWstellarium, STWJob
 
 import time
+
+from signal import signal, SIGINT
 
 class components(STWobject.stwObject):
     def __init__(self, logger):
@@ -33,13 +35,22 @@ class components(STWobject.stwObject):
         self.stellarium.Init()
         self.uc.Init()
 
+        # CTRL-C detection to exit self.Loop
+        signal(SIGINT, self.handler)
+        self.ControlCDetected = False
+        self.log.info("Press CTRL-C to leave loop.")
+
+    def handler(self, signal_received, frame):
+        # Handle any cleanup here
+        self.log.info("SIGINT or CTRL-C detected.")
+        self.ControlCDetected = True
+
     def Config(self):
         self.log.info("Start configuration phase.")
 
         self.astro.Config()
         self.uc.Config()
         self.sys.Config()
-        self.uc.Config()
         self.stellarium.Config()
 
         # try to get time offset to system time via NTP
@@ -71,29 +82,43 @@ class components(STWobject.stwObject):
     def Loop(self):
         self.log.info("Start loop phase.")
 
-        loop = True    
-
         ra_a = 0
         de_a = 0
-        while loop:
-        # collect data
-                         
-        # get inputs form user and Stellarium
+
+        CurrentEt = self.astro.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
+
+        # send data to stellarium periodic 
+        stellariumPeriodicRead = STWJob.STWJob(0.5) # 0.5 secs 
+        stellariumPeriodicRead.startJob(CurrentEt)
+
+        stellariumPeriodicSend = STWJob.STWJob(0.5) # 0.5 secs 
+        stellariumPeriodicSend.startJob(CurrentEt)
+
+        while not self.ControlCDetected:
+
+            # 
+            CurrentEt = self.astro.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
+
+            # get inputs form user and Stellarium
             remote = self.uc.listen()
 
             if remote:
                 self.log.debug('User remote command ' + remote)
-                if remote == 'S2':
-                    loop = False
 
-            ret, ra, de  = self.stellarium.ReceiveFromStellarium()
-            if ret:
-                ra_a = ra
-                de_a = de
+#           C   is speed up
+#           D   is speed down
+#           Y   is telescope lat
+#           X   is telescope lon
+#           B   is tracking on/off
+#           S1  is sync telescope to stellarium reference
+#           S2  is change west/east pier alignment
+
+            if stellariumPeriodicRead.doJob(CurrentEt):
+                ret, ra, de  = self.stellarium.ReceiveFromStellarium()
+                if ret:
+                    ra_a = ra
+                    de_a = de
             
-            time.sleep(0.5)
-
-            self.stellarium.SendToStellarium(ra_a, de_a)
-
-
-        # set outputs motors and stellarium
+            # set outputs motors and stellarium
+            if stellariumPeriodicSend.doJob(CurrentEt):
+                self.stellarium.SendToStellarium(ra_a, de_a)

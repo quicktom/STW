@@ -10,6 +10,16 @@ import logging, sys
 
 import STWcomponents
 
+__author__      = "Thomas Rinder"
+__copyright__   = "Copyright 2023, The observator Group"
+__credits__     = ["Thomas Rinder"]
+__license__     = "GPL"
+__version__     = "0.1.0"
+__maintainer__  = "Thomas Rinder"
+__email__       = "thomas.rinder@fh-kiel.de"
+__status__      = "alpha"
+
+
 # Configure logger
 def SetupLogging(debug = False):
     # setup logging 
@@ -40,6 +50,10 @@ def main():
     SetupLogging(True)
     logger = logging.getLogger(__name__)
     logger.info("Initialize program.")
+    logger.info("------------------------------------------------------")
+    logger.info("Author : " + __author__ + "(" + __email__ + ")")
+    logger.info("Version: " + __version__ )
+    logger.info("------------------------------------------------------")
 
 # basic configuration phase
     comp = STWcomponents.components(logger)

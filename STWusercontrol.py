@@ -175,18 +175,17 @@ class uc(STWobject.stwObject):
                 self.JOY_STICK_Y = self.JOY_STICK_AXIS_Y_UP     if cdata[0] < 64 else self.JOY_STICK_AXIS_Y_DOWN if cdata[0] > 192 else self.JOY_STICK_AXIS_Y_CENTER
 
                 # stick coordinates
-                if self.XCOORD != cdata[1]:
-                    self.XCOORD = cdata[1]
-                    self.XCOORD_CHANGED = True
-                else:
-                    self.XCOORD_CHANGED = False
+                # if self.XCOORD != cdata[1]:
+                #     self.XCOORD = cdata[1]
+                #     self.XCOORD_CHANGED = True
+                # else:
+                #     self.XCOORD_CHANGED = False
                 
-                if self.YCOORD != cdata[0]:
-                    self.YCOORD = cdata[0]
-                    self.YCOORD_CHANGED = True
-                else:
-                    self.YCOORD_CHANGED = False
-
+                # if self.YCOORD != cdata[0]:
+                #     self.YCOORD = cdata[0]
+                #     self.YCOORD_CHANGED = True
+                # else:
+                #     self.YCOORD_CHANGED = False
 
                 # one shot detect on joystick
                 if X_S != self.JOY_STICK_X:
