@@ -7,7 +7,6 @@ Prof. Rinder 03.09.2022 thomas.rinder@fh-kiel.de
 Definitions
 ===========
 
-
 COORD_TOPO is a frame which is aligned to the earth rotation axis in z-axis
 as DYNSTW_TOPO does. x-Axis is mirrored to DYNSTW_TOPO. 
 So telescope is moving from east to west with increasing longitude.

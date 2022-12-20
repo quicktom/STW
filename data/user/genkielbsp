@@ -1,0 +1,5 @@
+#!/bin/bash
+rm -f kiel.bsp 
+pinpoint -def kiel.def -pck pck00010.tpc -spk kiel.bsp 
+brief kiel.bsp > kiel.log
+
