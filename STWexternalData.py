@@ -1,5 +1,5 @@
 
-# Download public data from JPL 
+# Automated download of NAIF data for spiceypy 
 
 import wget, os
 

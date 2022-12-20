@@ -9,3 +9,8 @@ __maintainer__ = "Thomas Rinder"
 __email__ = "thomas.rinder@fh-kiel.de"
 __status__ = "alpha"
 
+def sayhello():
+    print("hello")
+
+
+print("hello")
