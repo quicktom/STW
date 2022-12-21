@@ -50,7 +50,7 @@ DEC    (4 bytes,signed integer): declination of the telescope (J2000)
 
 import STWobject
 
-import struct, socket, select, threading, logging, queue, datetime, time
+import struct, socket, select, threading, logging, queue, time
 
 class stellarium(STWobject.stwObject):
 
@@ -65,7 +65,7 @@ class stellarium(STWobject.stwObject):
 
         self.listening_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
         self.listening_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.listening_socket.setblocking(False)
+        #self.listening_socket.setblocking(False)
         self.listening_socket.bind( ("localhost", 10001) )
         self.listening_socket.listen(1)
 

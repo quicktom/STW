@@ -19,6 +19,7 @@ class components(STWobject.stwObject):
 
         self.sys        = STWsystem.sys(self.log)
         self.astro      = STWastrometry.astro(self.log)
+        self.astroguide = STWastrometry.astroguide(self.log)
         self.uc         = STWusercontrol.uc(self.log)
         self.motors     = STWmotors.motors(self.log)
         self.stellarium = STWstellarium.stellarium(self.log)
@@ -31,17 +32,17 @@ class components(STWobject.stwObject):
 
         self.sys.Init()
         self.astro.Init()
+        self.astroguide.Init()
         self.motors.Init()
         self.stellarium.Init()
         self.uc.Init()
 
         # CTRL-C detection to exit self.Loop
-        signal(SIGINT, self.handler)
+        signal(SIGINT, self.handlerSIGINT)
         self.ControlCDetected = False
         self.log.info("Press CTRL-C to leave loop.")
 
-    def handler(self, signal_received, frame):
-        # Handle any cleanup here
+    def handlerSIGINT(self, signal_received, frame):
         self.log.info("SIGINT or CTRL-C detected.")
         self.ControlCDetected = True
 
@@ -49,6 +50,7 @@ class components(STWobject.stwObject):
         self.log.info("Start configuration phase.")
 
         self.astro.Config()
+        self.astroguide.Config()
         self.uc.Config()
         self.sys.Config()
         self.stellarium.Config()
@@ -76,49 +78,51 @@ class components(STWobject.stwObject):
         self.log.info("Start shutdown phase.")
         
         self.astro.Shutdown()
+        self.astroguide.Shutdown()
         self.uc.Shutdown()
+        self.sys.Shutdown()
         self.stellarium.Shutdown()
 
     def Loop(self):
         self.log.info("Start loop phase.")
 
-        ra_a = 0
-        de_a = 0
-
         CurrentEt = self.astro.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
 
-        # send data to stellarium periodic 
-        stellariumPeriodicRead = STWJob.STWJob(0.5) # 0.5 secs 
-        stellariumPeriodicRead.startJob(CurrentEt)
+        # loop periodic 
+        loopPeriodic = STWJob.STWJob(0.1)           # 0.1 secs
+        loopPeriodic.startJob(CurrentEt)
 
         stellariumPeriodicSend = STWJob.STWJob(0.5) # 0.5 secs 
         stellariumPeriodicSend.startJob(CurrentEt)
 
-        while not self.ControlCDetected:
+        self.astroguide.SetTarget(CurrentEt, 0, 0)
 
-            # 
+        while not self.ControlCDetected:
             CurrentEt = self.astro.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
 
-            # get inputs form user and Stellarium
-            remote = self.uc.listen()
+            if loopPeriodic.doJob(CurrentEt):
 
-            if remote:
-                self.log.debug('User remote command ' + remote)
+                # get user inputs 
+                remote = self.uc.listen()
+                if remote:
+                    self.log.debug('User remote command ' + remote)
 
-#           C   is speed up
-#           D   is speed down
-#           Y   is telescope lat
-#           X   is telescope lon
-#           B   is tracking on/off
-#           S1  is sync telescope to stellarium reference
-#           S2  is change west/east pier alignment
+    #           C   is speed up
+    #           D   is speed down
+    #           Y   is telescope lat
+    #           X   is telescope lon
+    #           B   is tracking on/off / stop motors
+    #           S1  is slew telescope to stellarium target
+    #           S2  is sync telescope coords to stellarium reference
 
-            if stellariumPeriodicRead.doJob(CurrentEt):
+                # get stellarium input
                 ret, ra, de  = self.stellarium.ReceiveFromStellarium()
                 if ret:
-                    ra_a = ra
-                    de_a = de
-            
-            # set outputs motors and stellarium
-            if stellariumPeriodicSend.doJob(CurrentEt):
-                self.stellarium.SendToStellarium(ra_a, de_a)
+                    self.astroguide.SetTarget(CurrentEt, ra, de)
+                
+                # set stellarium output
+                if stellariumPeriodicSend.doJob(CurrentEt):
+                    # Simulation reflects target lon, lat
+                    self.astroguide.SetActual(CurrentEt, self.astroguide.Target.lon, self.astroguide.Target.lat)
+
+                    self.stellarium.SendToStellarium(self.astroguide.Actual.ra, self.astroguide.Actual.de)
