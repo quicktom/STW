@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """ STWmotors module of the observator project.
 
+    Mount level
+
 This module abstracts motors functions.
 
 Todo:
 
 """
-import STWobject
+import STWMotorsLowLevel
 
-class motors(STWobject.stwObject):
+class STWMotors(STWMotorsLowLevel.STWMotorsLowLevel):
 
-    def Init(self):
-        self.log.info("Initialize Motors.")
-        return super().Init()
-
+    def ToDo(self):
+        pass
