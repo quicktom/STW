@@ -100,7 +100,7 @@ class STWMotorsLowLevel(STWMicroController.board):
         self.log.debug("Axis1_SetAngle2Zero")
         return self.ResetPos(1)
 
-    def Axis0_GetMaxSpeed(self):  # steps / s
+    def Axis0_GetMaxSpeed(self):  
         reg = self.GetParam(0, "MAX_SPEED")
 
         ret = 15.2588 * float(reg) * self.DEGS_PER_STEP_0 # step / s * deg / step

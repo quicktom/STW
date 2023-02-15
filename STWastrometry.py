@@ -76,7 +76,7 @@ class astro(STWobject.stwObject):
         __, Lon, Lat = spiceypy.recrad(spiceypy.mxv(spiceypy.pxform('J2000', frame, et),
                                                     spiceypy.latrec(1, ra_deg * spiceypy.rpd(), de_deg * spiceypy.rpd())))
 
-        # because telescope is running from east to west treat Lon as negative before meridian
+        # warp to negative angle
         if Lon > spiceypy.pi():
             Lon = Lon - 2*spiceypy.pi()
 
@@ -121,7 +121,7 @@ class astro(STWobject.stwObject):
 
     @staticmethod
     def GetJ2000CoordsString(ra, de):
-        return astro.self.ddeg2dms(ra/15, chdeg='h') + " " + astro.ddeg2dms(de)
+        return astro.ddeg2dms(ra/15, chdeg='h') + " " + astro.ddeg2dms(de)
 
     @staticmethod
     def GetTelescopeCoordsString(lon, lat):
@@ -170,6 +170,11 @@ class astroguide(STWobject.stwObject):
         self.Target.Azimut.lon, self.Target.Azimut.lat = astro.RaDeJ20002LonLatAzmimutal(
             et, ra, de)
 
+        #self.log.debug("Telescope target is %s (J2000 %s)(Az %s)", 
+        #    self.astrometry.GetTelescopeCoordsString(self.Target.lon, self.Target.lat),
+        #    self.astrometry.GetJ2000CoordsString(self.Target.ra, self.Target.de),
+        #    self.astrometry.GetTelescopeCoordsString(self.Target.Azimut.lon, self.Target.Azimut.lat))    
+
     def SetActual(self, et, lon, lat, Aligned2WestPier=True):
         # Set actual coords from telescope frame
         self.Actual = lambda: 0
@@ -202,10 +207,13 @@ class astroguide(STWobject.stwObject):
 
     def EstimateTargetAngularSpeed(self, dtsec=1, Aligned2WestPier=True):
         # Estimate angular speed of target in degrees per sec
-        tlon, tlat = astro.RaDeJ20002LonLatTelescope(self.Target.et + dtsec,
-                                                     self.Target.ra, self.Target.de, Aligned2WestPier)
+        tlon1, tlat1 = astro.RaDeJ20002LonLatTelescope(self.Target.et,
+                                                       self.Target.ra, self.Target.de, Aligned2WestPier)
 
-        return (tlon - self.Target.lon)/dtsec, (tlat - self.Target.lat)/dtsec
+        tlon2, tlat2 = astro.RaDeJ20002LonLatTelescope(self.Target.et + dtsec,
+                                                       self.Target.ra, self.Target.de, Aligned2WestPier)
+
+        return (tlon2 - tlon1)/dtsec, (tlat2 - tlat1)/dtsec
 
     def EstimateSlewingToTargetAngles(self, londps, latdps, Aligned2WestPier=True, dtsec=1):
         # First order estimate of slewing angles from actual to target coords
@@ -218,6 +226,8 @@ class astroguide(STWobject.stwObject):
         ts = max(self.EstimateSlewingTime(londps, latdps))
         return self.Target.lon + ts * tlondps, self.Target.lat + ts * tlatdps
 
+    def GetUTCTimeStrFromEt(self, et):
+        return spiceypy.timout(et, "YYYY-MON-DD HR:MN:SC.# ::UTC+1 ::RND")    
 
 def main():
 

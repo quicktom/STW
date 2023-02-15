@@ -98,59 +98,63 @@ class board(STWobject.stwObject):
     #Open motordriver comport
     def Init(self, loadConfigFromFile = True, M0RegisterConfig = 'M0.json', M1RegisterConfig = 'M1.json', comPort = 'COM6'):
         
+        self.log.info("Initialize board.")
+
         try:
             self.serialPort = serial.Serial(comPort, 115200, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE, 0.01, True)
         except:
             self.log.fatal("Unable to open serial port.")
             self.isInitialized = False
             return
-             
+
+        # upper level must check and quit
+        self.isInitialized = True
+
         if loadConfigFromFile:
             self.log.info("Load motor config from file.")
             self.LoadConfigRegistersFromFile(0, M0RegisterConfig)
             self.LoadConfigRegistersFromFile(1, M1RegisterConfig)
         else:
             self.log.info("Use motor config from firmware.")
-
-        # upper level must check and quit
-        self.isInitialized = True
         
         self.log.info("Motors initialized.")
 
-
-    #Close motordriver comport     
-    def __del__(self):
+    def Shutdown(self):
         if self.isInitialized:
             self.serialPort.close() 
  
     #Send and Receive from motordriver
-    def __SendReceiveCmd(self, motorId, sendToMotorStr, receiveFromMotor = False, checkRetValue = True):   
-        cmd = "M"+ str(motorId) + "." + sendToMotorStr + '\r'
-        # send command to X-CUBE-SPN2
-        self.serialPort.write(bytes(cmd,'utf-8'))
-        # receive answer from X-CUBE-SPN2
-        ret = self.serialPort.readline().decode("utf-8")[:-2]
+    def __SendReceiveCmd(self, motorId, sendToMotorStr, receiveFromMotor = False, checkRetValue = True):
+        if(self.isInitialized):   
+            cmd = "M"+ str(motorId) + "." + sendToMotorStr + '\r'
+            # send command to X-CUBE-SPN2
+            self.serialPort.write(bytes(cmd,'utf-8'))
+            # receive answer from X-CUBE-SPN2
+            ret = self.serialPort.readline().decode("utf-8")[:-2]
 
-        # Check answers to detect errors
-        if checkRetValue:
-            # ret is "ERROR"
-            # malformed cmd sent
-            if ret == "ERROR":
-                self.log.error("Error <%s>.", cmd)
-                if receiveFromMotor:
+            # Check answers to detect errors
+            if checkRetValue:
+                # ret is "ERROR"
+                # malformed cmd sent
+                if ret == "ERROR":
+                    self.log.error("Error <%s>.", cmd)
+                    if receiveFromMotor:
+                        return False, -1
+                    else:
+                        return False
+
+                # ret malformed hexnumber or empty ret
+                if receiveFromMotor and not all(c in string.hexdigits for c in ret):
+                    self.log.error("Result error <%s>.", cmd)
                     return False, -1
-                else:
-                    return False
 
-            # ret malformed hexnumber or empty ret
-            if receiveFromMotor and not all(c in string.hexdigits for c in ret):
-                self.log.error("Result error <%s>.", cmd)
-                return False, -1
-
-        if receiveFromMotor:
-            return True, int(ret,16)
-        else:       
-            return True        
+            if receiveFromMotor:
+                return True, int(ret,16)
+            else:       
+                return True        
+        else:
+            self.log.error("Error board not initialized.")
+            return False
 
     def SetParam(self, motorId, paramStr, value):
         status = self.__SendReceiveCmd(motorId, "SETPARAM."  + paramStr + "." + str(value))
@@ -359,8 +363,8 @@ class board(STWobject.stwObject):
 
         for i in range(0,len(self.StatusErrorBitsPtr)):
             if(self.StatusErrorBitsPtr[i](self, status)):
-                self.log.fatal("Motor driver <%i> reports an error status <%s>", motorId, self.StatusErrorBitsStr[i])
-                ret["self.StatusErrorBitsStr[i]"].append(True)
+                self.log.fatal("Motor driver <%i> reports an error status bit <%s>", motorId, self.StatusErrorBitsStr[i])
+                ret[self.StatusErrorBitsStr[i]] = True
 
         return ret
 
