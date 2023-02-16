@@ -12,9 +12,13 @@ import STWMotorsLowLevel
 
 class mount(STWMotorsLowLevel.STWMotorsLowLevel):
 
+    def __init__(self, logger, comportDevStr):
+        self.log = logger
+        self.comportDevStr = comportDevStr
+
     def Init(self):
         # Init defaults
-        super().Init()
+        super().Init(comPort = self.comportDevStr)
         # for safety reasons softstop motors
         self.SoftStopMotors()
         # set motors to default angles

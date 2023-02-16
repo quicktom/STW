@@ -6,7 +6,7 @@ This module is the top most of the project and contains the main and the main lo
 
 """
 
-import logging, sys
+import logging, sys, argparse
 
 import STWcomponents
 
@@ -47,16 +47,32 @@ def SetupLogging(debug = False):
 
 # main entry
 def main():
-    SetupLogging(True)
+    # parse arguments
+    # defaults 
+    #   debugoff false
+    #   east false
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debugOff",    help="Print informations only.", action="store_true")
+    parser.add_argument("--westPier",    help="Set telescope to west pier.", action="store_false")
+    parser.add_argument("--comport",     help="Set serial comport device string.", nargs='?', default="COM6", type=str)
+
+    args = parser.parse_args()
+
+    SetupLogging(not args.debugOff)
     logger = logging.getLogger(__name__)
     logger.info("Initialize program.")
     logger.info("------------------------------------------------------")
     logger.info("Author : " + __author__ + "(" + __email__ + ")")
     logger.info("Version: " + __version__ )
     logger.info("------------------------------------------------------")
+    logger.info("Program configuration:")
+    logger.info("debugOff               : %r", args.debugOff)
+    logger.info("westPier               : %r", args.westPier)
+    logger.info("Comport device string  : %s", args.comport)
+    logger.info("------------------------------------------------------")
 
 # basic configuration phase
-    comp = STWcomponents.components(logger)
+    comp = STWcomponents.components(logger, args.westPier, args.comport)
 
 # initialization phase
     comp.Init()

@@ -134,6 +134,10 @@ class astro(STWobject.stwObject):
 
 class astroguide(STWobject.stwObject):
 
+    def __init__(self, logger, Aligned2WestPier):
+        self.log = logger
+        self.Aligned2WestPier = Aligned2WestPier
+
     def Init(self):
         self.telescopeIsAligned = False
 
@@ -148,7 +152,7 @@ class astroguide(STWobject.stwObject):
         self.astrometry.Shutdown()
         return super().Shutdown()
 
-    def SetTarget(self, et, ra=0, de=0, SPKObjectStr='', Aligned2WestPier=True):
+    def SetTarget(self, et, ra=0, de=0, SPKObjectStr=''):
         # Set target coords from ra, de in J2000 frame or from SPK object
         self.Target = lambda: 0
         # Set target coords from ra,de or SPK object
@@ -163,7 +167,7 @@ class astroguide(STWobject.stwObject):
 
         # get telescope coords of target
         self.Target.lon, self.Target.lat = astro.RaDeJ20002LonLatTelescope(
-            et, self.Target.ra, self.Target.de, Aligned2WestPier)
+            et, self.Target.ra, self.Target.de, self.Aligned2WestPier)
 
         # get azimutal coords of target
         self.Target.Azimut = lambda: 0
@@ -175,7 +179,7 @@ class astroguide(STWobject.stwObject):
         #    self.astrometry.GetJ2000CoordsString(self.Target.ra, self.Target.de),
         #    self.astrometry.GetTelescopeCoordsString(self.Target.Azimut.lon, self.Target.Azimut.lat))    
 
-    def SetActual(self, et, lon, lat, Aligned2WestPier=True):
+    def SetActual(self, et, lon, lat):
         # Set actual coords from telescope frame
         self.Actual = lambda: 0
         # Set actual coords from telescope lat, lon
@@ -186,7 +190,7 @@ class astroguide(STWobject.stwObject):
 
         # get actual ra de coords
         self.Actual.ra, self.Actual.de = astro.LonLatTelescope2RaDeJ2000(
-            et, self.Actual.lon, self.Actual.lat, Aligned2WestPier)
+            et, self.Actual.lon, self.Actual.lat, self.Aligned2WestPier)
 
         # get azimutal coords of target
         self.Actual.Azimut = lambda: 0
@@ -205,30 +209,33 @@ class astroguide(STWobject.stwObject):
         dlatTime = fabs(self.Target.lat - self.Actual.lat) / latdps
         return dlonTime, dlatTime
 
-    def EstimateTargetAngularSpeed(self, dtsec=1, Aligned2WestPier=True):
-        # Estimate angular speed of target in degrees per sec
+    def EstimateTargetAngularSpeed(self, dtsec=1):
+        # Estimate angular speed of target in degs/s
         tlon1, tlat1 = astro.RaDeJ20002LonLatTelescope(self.Target.et,
-                                                       self.Target.ra, self.Target.de, Aligned2WestPier)
+                                                       self.Target.ra, self.Target.de, self.Aligned2WestPier)
 
         tlon2, tlat2 = astro.RaDeJ20002LonLatTelescope(self.Target.et + dtsec,
-                                                       self.Target.ra, self.Target.de, Aligned2WestPier)
+                                                       self.Target.ra, self.Target.de, self.Aligned2WestPier)
 
         return (tlon2 - tlon1)/dtsec, (tlat2 - tlat1)/dtsec
 
-    def EstimateSlewingToTargetAngles(self, londps, latdps, Aligned2WestPier=True, dtsec=1):
+    def EstimateSlewingToTargetAngles(self, londps, latdps, dtsec=1):
         # First order estimate of slewing angles from actual to target coords
         # assuming target ra, de coords are constant.
         #
         # If slewing takes a long time then target coords are changing.
         # So the telescope should slew to extimated coords of target.
         tlondps, tlatdps = self.EstimateTargetAngularSpeed(
-            dtsec, Aligned2WestPier)
+            dtsec, self.Aligned2WestPier)
         ts = max(self.EstimateSlewingTime(londps, latdps))
         return self.Target.lon + ts * tlondps, self.Target.lat + ts * tlatdps
 
     def GetUTCTimeStrFromEt(self, et):
-        return spiceypy.timout(et, "YYYY-MON-DD HR:MN:SC.# ::UTC+1 ::RND")    
-
+        return spiceypy.timout(et, "YYYY-MON-DD HR:MN:SC.# ::UTC ::RND")    
+    
+    def GetSecPastJ2000TDBNow(self, str=None, offset=0):
+        return self.astrometry.GetSecPastJ2000TDBNow(str, offset)
+        
 def main():
 
     # a = astro(logging.getLogger())

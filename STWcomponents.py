@@ -14,22 +14,31 @@ import json
 from signal import signal, SIGINT
 
 class components(STWobject.stwObject):
-    def __init__(self, logger):
+    def __init__(self, logger, Aligned2WestPier, comportDevStr):
         super().__init__(logger)
 
+        # abstract system functions
         self.sys        = STWsystem.sys(self.log)
-        self.astro      = STWastrometry.astro(self.log)
-        self.astroguide = STWastrometry.astroguide(self.log)
-        self.uc         = STWusercontrol.uc(self.log)
-        self.stellarium = STWstellarium.stellarium(self.log)
-        self.mount      = STWMotors.mount(self.log)
-
-        self.TimeOffsetSec = 0
-
-        self.TelescopeWestPier = True
         
-        self.SlewSpeedFactor   = 0.1  # fraction of max speed
+        # abstract astrometry functions
+        self.astroguide = STWastrometry.astroguide(self.log, Aligned2WestPier)
 
+        # abstract user input functions
+        self.uc         = STWusercontrol.uc(self.log)
+
+        # abstract stellarium functions
+        self.stellarium = STWstellarium.stellarium(self.log)
+        
+        # abstract telescope mount functions
+        self.mount      = STWMotors.mount(self.log, comportDevStr)
+        
+        # ntp time offset
+        self.TimeOffsetSec = 0
+        
+        # slewing speed is a fraction of maxspeed
+        self.SlewSpeedFactor   = 0.1  
+
+        # mount is tracking
         self.IsMountTracking = False
 
 # start basic initialisation phase
@@ -37,7 +46,6 @@ class components(STWobject.stwObject):
         self.log.info("Start basic initialisation phase.")
 
         self.sys.Init()
-        self.astro.Init()
         self.astroguide.Init()
         self.stellarium.Init()
         self.uc.Init()
@@ -55,7 +63,6 @@ class components(STWobject.stwObject):
     def Config(self):
         self.log.info("Start configuration phase.")
 
-        self.astro.Config()
         self.astroguide.Config()
         self.uc.Config()
         self.sys.Config()
@@ -70,10 +77,6 @@ class components(STWobject.stwObject):
         else:   
             self.log.info("Unable to detect time offset to NTP Server")
 
-        # angular tracking speed degs/s    
-        self.lonps = 0
-        self.latps = 0
-
         return super().Config()
 
     def PreLoop(self):
@@ -85,12 +88,42 @@ class components(STWobject.stwObject):
     def Shutdown(self):
         self.log.info("Start shutdown phase.")
         
-        self.astro.Shutdown()
         self.astroguide.Shutdown()
         self.uc.Shutdown()
         self.sys.Shutdown()
         self.stellarium.Shutdown()
         self.mount.Shutdown()
+
+    def DoDataLog(self, CurrentEt):
+        try:
+            datafile = open("datadata.json", 'r+')
+            file_data = json.load(datafile)
+        except FileNotFoundError:
+            # if not existe create new and start over
+            datafile =  open("datadata.json",'w+')
+            file_data = {}
+            file_data["data"] = []                       
+        finally:
+            # update 
+            self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
+      
+            state = {   "et":               CurrentEt,
+                        "UTC":              self.astroguide.GetUTCTimeStrFromEt(CurrentEt),    
+                        "TelescopeLon":     self.astroguide.Actual.lon,  
+                        "TelescopeLat":     self.astroguide.Actual.lat,
+                        "TargetLon":        self.astroguide.Target.lon,
+                        "TargetLat":        self.astroguide.Target.lat,
+                        "TargetRa":         self.astroguide.Target.ra,
+                        "TargetDe":         self.astroguide.Target.de,
+                        "IsWestPier":       self.astroguide.Aligned2WestPier }
+
+            file_data["data"].append(state)
+            # overwrite file contents
+            datafile.truncate(0)
+            datafile.seek(0)
+
+            json.dump(file_data, datafile, indent = 4)
+            datafile.close()
 
     def DoUserControlJob(self, CurrentEt):
         # get user inputs
@@ -110,27 +143,31 @@ class components(STWobject.stwObject):
                     self.log.debug("Slew telescope to target.")
                     self.mount.Axis0_SlewTo(self.astroguide.Target.lon)
                     self.mount.Axis1_SlewTo(self.astroguide.Target.lat)
+                    self.IsMountTracking = False
 
                 case 'S2':
                     self.log.debug("Set telescope reference.")
+                    self.mount.SoftStopMotors()
                     self.mount.Axis0_SetAngle(self.astroguide.Target.lon)
                     self.mount.Axis1_SetAngle(self.astroguide.Target.lat)
 
                 case 'XC':
                     self.mount.Axis0_SoftStop()
                 case 'XR':
+                    self.IsMountTracking = False
                     self.mount.SlewConstantSpeed(0, self.SlewSpeedFactor, self.mount.Axis0_GetMaxSpeed(), 1)
                 case 'XL':
+                    self.IsMountTracking = False
                     self.mount.SlewConstantSpeed(0, self.SlewSpeedFactor, self.mount.Axis0_GetMaxSpeed(), -1)
                 case 'YC':
                     self.mount.Axis1_SoftStop()
                 case 'YU':
+                    self.IsMountTracking = False
                     self.mount.SlewConstantSpeed(1, self.SlewSpeedFactor, self.mount.Axis1_GetMaxSpeed(), 1)
                 case 'YD':
+                    self.IsMountTracking = False
                     self.mount.SlewConstantSpeed(1, self.SlewSpeedFactor, self.mount.Axis1_GetMaxSpeed(), -1)
- 
                 case 'B':
-                    
                     if(self.IsMountTracking):
                         self.log.debug("Stop constant speed tracking")
                         self.IsMountTracking = False
@@ -138,78 +175,55 @@ class components(STWobject.stwObject):
                     else:
                         self.log.debug("Start constant speed tracking")
                         self.IsMountTracking = True
+                        self.mount.SoftStopMotors()
                         self.mount.SetConstantSpeed(self.lonps, self.latps)
 
                 case 'D':
                     self.log.debug("D user control command received.")
                 case 'C':
                     self.log.debug("C user control command received.")
+
                 case 'A':
-                    try:
-                        datafile =  open("datadata.json",'r+')
-                        file_data = json.load(datafile)
-                    except FileNotFoundError:
-                        # if not existe create new and start over
-                        datafile =  open("datadata.json",'w+')
-                        file_data = {}
-                        file_data["data"] = []                       
-                    finally:
-                        # update 
-                        self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle(), Aligned2WestPier=self.TelescopeWestPier)
-      
-                        state = {   "et":               CurrentEt,
-                                    "UTC":              self.astroguide.GetUTCTimeStrFromEt(CurrentEt),    
-                                    "TelescopeLon":     self.astroguide.Actual.lon,  
-                                    "TelescopeLat":     self.astroguide.Actual.lat,
-                                    "TargetLon":        self.astroguide.Target.lon,
-                                    "TargetLat":        self.astroguide.Target.lat,
-                                    "TargetRa":         self.astroguide.Target.ra,
-                                    "TargetDe":         self.astroguide.Target.de,
-                                    "IsWestPier":       self.TelescopeWestPier }
-
-                        file_data["data"].append(state)
-                        # overwrite file contents
-                        datafile.truncate(0)
-                        datafile.seek(0)
-
-                        json.dump(file_data, datafile, indent = 4)
-                        datafile.close()
-
+                    self.DoDataLog(CurrentEt)
+                    
                 case _: self.log.error("Undefinded user control command %s received.", remote)
 
     def DoStellariumInput(self, CurrentEt):
         ret, ra, de  = self.stellarium.ReceiveFromStellarium()
         if ret:
-            self.astroguide.SetTarget(CurrentEt, ra, de, Aligned2WestPier=self.TelescopeWestPier)
+            self.astroguide.SetTarget(CurrentEt, ra, de)
     
-    def DoStellariumOutput(self, CurrentEt):
+    def DoStellariumOutput(self):
         # Simulation reflects target lon, lat
         self.stellarium.SendToStellarium(self.astroguide.Actual.ra, self.astroguide.Actual.de)
 
+    # main loop, non blocking
     def Loop(self):
         self.log.info("Start loop phase.")
 
-        CurrentEt = self.astro.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
+        CurrentEt = self.astroguide.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
 
-        # loop periodic 
+        # periodic process inputs and outputs 
         loopPeriodic = STWJob.STWJob(0.1)           # 0.1 secs
         loopPeriodic.startJob(CurrentEt)
 
+        # update to stellarium
         stellariumPeriodicSend = STWJob.STWJob(0.5) # 0.5 secs 
         stellariumPeriodicSend.startJob(CurrentEt)
 
-        statisticsPeriodic = STWJob.STWJob(2) # 2 secs
+        # print stattistics
+        statisticsPeriodic = STWJob.STWJob(2)       # 2 secs
         statisticsPeriodic.startJob(CurrentEt)
 
         # set default target
-        self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle(), Aligned2WestPier=self.TelescopeWestPier)
-        self.astroguide.SetTarget(CurrentEt, self.astroguide.Actual.ra, self.astroguide.Actual.de, Aligned2WestPier=self.TelescopeWestPier)
+        self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
+        self.astroguide.SetTarget(CurrentEt, self.astroguide.Actual.ra, self.astroguide.Actual.de)
 
         # set default angular tracking speed degs/s
-        self.lonps, self.latps = self.astroguide.EstimateTargetAngularSpeed(Aligned2WestPier=self.TelescopeWestPier)
+        self.lonps, self.latps = self.astroguide.EstimateTargetAngularSpeed()
 
         while not self.ControlCDetected:
-            CurrentEt = self.astro.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
+            CurrentEt = self.astroguide.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
 
             # do periodic ...
             if loopPeriodic.doJob(CurrentEt):
@@ -223,12 +237,12 @@ class components(STWobject.stwObject):
                 self.mount.CheckErrors()
 
                 # update target and actual telescope state    
-                self.astroguide.SetTarget(CurrentEt, self.astroguide.Target.ra, self.astroguide.Target.de, Aligned2WestPier=self.TelescopeWestPier)
-                self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle(), Aligned2WestPier=self.TelescopeWestPier)
+                self.astroguide.SetTarget(CurrentEt, self.astroguide.Target.ra, self.astroguide.Target.de)
+                self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
  
             if stellariumPeriodicSend.doJob(CurrentEt):
                 # process stellarium output
-                self.DoStellariumOutput(CurrentEt)
+                self.DoStellariumOutput()
 
             if statisticsPeriodic.doJob(CurrentEt):
                 self.log.debug("Telescope Target %f,%f", self.astroguide.Target.lon, self.astroguide.Target.lat)
