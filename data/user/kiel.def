@@ -1,0 +1,104 @@
+
+\begintext
+
+<lon>, <lat>
+
+Add your location here:
+SITES = ('KIELSTW', <new>)
+
+Add a section here and use new id code:
+<new>_CENTER = 399
+<new>_FRAME = 'EARTH_FIXED'
+<new>_IDCODE = <id>
+<new>_LATLON = ( <lat> <lon> <heigth_km> )
+<new>_BOUNDS = ( @3000BC-01-01-00:00:00.000, @3000-01-01-00:00:00.000 )
+
+Put a section to kiel.tf and use the new id code:
+
+NAIF_BODY_NAME+='<new>'
+NAIF_BODY_CODE+=<id>
+
+FRAME_<new>_TOPO      = 1<id>
+FRAME_1<id>_NAME      = '<new>_TOPO'
+FRAME_1<id>_CLASS     = 4
+FRAME_1<id>_CLASS_ID  = 1<id>
+FRAME_1<id>_CENTER    = <id>
+
+OBJECT_<id>_FRAME          = '<new>_TOPO'
+
+TKFRAME_<id>_TOPO_RELATIVE   = 'EARTH_FIXED'
+TKFRAME_<id>_TOPO_SPEC       = 'ANGLES'
+TKFRAME_<id>_TOPO_UNITS      = 'DEGREES'
+TKFRAME_<id>_TOPO_AXES       = ( 3, 2, 3)
+TKFRAME_<id>_TOPO_ANGLES     = (-<lon>, -90+<lat>, 180.0000000000000  )
+
+Use genbsp.cmd to create the bsp kiel.bsp
+
+Include kiel.bsp and kiel.tf in your meta kernel.
+
+/********/
+Sternwarte der FH Kiel
+KIELSTW  54 20 0N 10 10 49E
+-> lat = 54.3333, lon = 10.1803
+-> -90 + lat = -35.6667
+-> -lon = -10.1803
+
+Archenhold-Sternwarte
+BERLINSTW 52 29  9N 13 28 35E
+-> lat = 52.4858, lon = 13.4764
+-> -90 + lat = -37.5142
+-> -lon = -13.4764
+
+Sternwarten - Deutsches Museum
+MUNICHSTW 48 08 50N 11 35 00E
+-> lat = 48.1472, lon = 11.5833
+-> -90 + lat = -41.8528
+-> -lon = -11.5833
+
+The Moscow Planetarium
+MOSCOWPLT 55 45 41N 37 35 2E
+-> lat = 55.7614, lon = 37.5839
+-> -90 + lat = -34.2386
+-> -lon = -37.5839
+
+\begindata
+
+SITES = ('DYNSTW', 'KIELSTW', 'BERLINSTW', 'MUNICHSTW', 'MOSCOWPLT')
+
+DYNSTW_CENTER = 399
+DYNSTW_FRAME = 'EARTH_FIXED'
+DYNSTW_IDCODE = 399899
+DYNSTW_LATLON = ( 54.3333 10.1803 0.0 )
+DYNSTW_BOUNDS = ( @3000BC-01-01-00:00:00.000, @3000-01-01-00:00:00.000 )
+
+KIELSTW_CENTER = 399
+KIELSTW_FRAME = 'EARTH_FIXED'
+KIELSTW_IDCODE = 399800
+KIELSTW_LATLON = ( 54.3333 10.1803 0.0 )
+KIELSTW_BOUNDS = ( @3000BC-01-01-00:00:00.000, @3000-01-01-00:00:00.000 )
+
+BERLINSTW_CENTER = 399
+BERLINSTW_FRAME = 'EARTH_FIXED'
+BERLINSTW_IDCODE = 399801
+BERLINSTW_LATLON = ( 52.4858 13.4764 0.0 )
+BERLINSTW_BOUNDS = ( @3000BC-01-01-00:00:00.000, @3000-01-01-00:00:00.000 )
+
+MUNICHSTW_CENTER = 399
+MUNICHSTW_FRAME = 'EARTH_FIXED'
+MUNICHSTW_IDCODE = 399802
+MUNICHSTW_LATLON = ( 48.1472 11.5833 0.0 )
+MUNICHSTW_BOUNDS = ( @3000BC-01-01-00:00:00.000, @3000-01-01-00:00:00.000 )
+
+MOSCOWPLT_CENTER = 399
+MOSCOWPLT_FRAME = 'EARTH_FIXED'
+MOSCOWPLT_IDCODE = 399803
+MOSCOWPLT_LATLON = ( 55.7614 37.5839 0.0 )
+MOSCOWPLT_BOUNDS = ( @3000BC-01-01-00:00:00.000, @3000-01-01-00:00:00.000 )
+
+\begintext
+
+
+
+
+
+
