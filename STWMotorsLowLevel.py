@@ -32,6 +32,12 @@ class STWMotorsLowLevel(STWMicroController.board):
         else:
             return  angle*self.STEPS_PER_DEG_1 
 
+    def AnglePerSteps(self, motorId, steps):
+        if motorId == 0:
+            return  steps*self.DEGS_PER_STEP_0 
+        else:
+            return  steps*self.DEGS_PER_STEP_1 
+        
     #
     # final mount driver low level driver
     #
@@ -54,8 +60,19 @@ class STWMotorsLowLevel(STWMicroController.board):
 
     # run at constant degrees per sec
     def Axis0_Run(self, angle_per_s):
-        self.log.debug("Axis0_Run %f degs/s %f", angle_per_s, self.StepsPerAngle(0, angle_per_s))
-        return self.RunCmd(0, self.StepsPerAngle(0, angle_per_s))
+        stepsps = self.StepsPerAngle(0, angle_per_s)
+
+        # actual angle_per_s and its error to angle_per_s
+        actual = self.Axis0_RunActualSpeed(angle_per_s)   
+        error = actual - angle_per_s        
+        
+        self.log.debug("Axis0_Run %f degs/s (actual %f degs/s, error %f(?) arcsecs/h)", angle_per_s, actual, error*3600*60*60)
+
+        return self.RunCmd(0, stepsps)
+
+    # get actual speed degrees per sec (estimate)
+    def Axis0_RunActualSpeed(self, angle_per_s):
+        return self.AnglePerSteps(0, self.SpeedReg2StepsHz(self.StepsHz2SpeedReg(self.StepsPerAngle(0, angle_per_s))))
 
     def Axis1_Run(self, angle_per_s):
         self.log.debug("Axis1_Run %f degs/s", angle_per_s)

@@ -208,6 +208,28 @@
             "TargetRa": 337.66983717903923,
             "TargetDe": -0.11746814593690126,
             "IsWestPier": true
+        },
+        {
+            "et": 729824939.8541396,
+            "UTC": "2023-FEB-16 13:07:50.7",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.10240738639187992,
+            "TargetLat": -2.077717810547571e-07,
+            "TargetRa": 353.0084261158833,
+            "TargetDe": -0.12657114173555362,
+            "IsWestPier": true
+        },
+        {
+            "et": 730153563.3722861,
+            "UTC": "2023-FEB-20 08:24:54.2",
+            "TelescopeLon": 0.0544,
+            "TelescopeLat": 0.038263010194897924,
+            "TargetLon": 0.1660789421916359,
+            "TargetLat": -3.5996823039210547e-07,
+            "TargetRa": 285.95821855132516,
+            "TargetDe": -0.0334018113543908,
+            "IsWestPier": true
         }
     ]
 }

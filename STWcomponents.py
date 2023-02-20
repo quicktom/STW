@@ -208,7 +208,7 @@ class components(STWobject.stwObject):
         loopPeriodic.startJob(CurrentEt)
 
         # update to stellarium
-        stellariumPeriodicSend = STWJob.STWJob(0.5) # 0.5 secs 
+        stellariumPeriodicSend = STWJob.STWJob(0.5) # 0.1 secs 
         stellariumPeriodicSend.startJob(CurrentEt)
 
         # print stattistics

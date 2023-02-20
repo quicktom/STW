@@ -288,6 +288,9 @@ class board(STWobject.stwObject):
         else:
             return 0 # warning  
 
+    def SpeedReg2StepsHz(self, reg):
+        return reg * self.L6470_SPEEDREG_2_STEPSHZ
+
     #
     # high level driver
     #
