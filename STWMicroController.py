@@ -104,8 +104,11 @@ class board(STWobject.stwObject):
             self.serialPort = serial.Serial(comPort, 115200, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE, 0.01, True)
         except:
             self.log.fatal("Unable to open serial port.")
+            self.log.fatal("Hard quit program.")
             self.isInitialized = False
-            return
+            # 
+            quit()
+            
 
         # upper level must check and quit
         self.isInitialized = True

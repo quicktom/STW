@@ -16,6 +16,7 @@ import queue
 import struct
 import logging
 import hid
+import time
 import STWobject
 
 # ubuntu
