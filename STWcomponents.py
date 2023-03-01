@@ -152,7 +152,7 @@ class components(STWobject.stwObject):
 
                 case 'S2':
                     self.log.debug("Set telescope reference.")
-                    self.mount.SoftStopMotors()
+                    self.mount.SoftStopMotors(wait=True)
                     self.mount.Axis0_SetAngle(self.astroguide.Target.lon)
                     self.mount.Axis1_SetAngle(self.astroguide.Target.lat)
                     self.ActualActionStr = "Got reference point."
@@ -217,20 +217,6 @@ class components(STWobject.stwObject):
         # Simulation reflects target lon, lat
         self.stellarium.SendToStellarium(self.astroguide.Actual.ra, self.astroguide.Actual.de)
 
-    def DoActualDataLog(self, CurrentEt):
-        try:
-            with open('actual.json', 'w') as f:
-                file_data = {"state":{   "et":               CurrentEt,
-                            "UTC":                  self.astroguide.GetUTCTimeStrFromEt(CurrentEt),    
-                            "telescopeActualStr":   self.astroguide.astrometry.GetTelescopeCoordsString(self.astroguide.Actual.lon, self.astroguide.Actual.lat),  
-                            "targetActualStr":      self.astroguide.astrometry.GetTelescopeCoordsString(self.astroguide.Target.lon, self.astroguide.Target.lat),
-                            "targetJ2000Str":       self.astroguide.astrometry.GetJ2000CoordsString(self.astroguide.Target.ra, self.astroguide.Target.de),
-                            "ActualActionStr":      self.ActualActionStr}}
-                json.dump(file_data, f, indent = 4)
-                f.close()
-        except: # may clients locks, so try again later 
-            pass
-
     # main loop, non blocking
     def Loop(self):
         self.log.info("Start loop phase.")
@@ -270,9 +256,6 @@ class components(STWobject.stwObject):
                 # update target and actual telescope state    
                 self.astroguide.SetTarget(CurrentEt, self.astroguide.Target.ra, self.astroguide.Target.de)
                 self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
-
-                # write actual data to file
-                self.DoActualDataLog(CurrentEt)
 
             if stellariumPeriodicSend.doJob(CurrentEt):
                 # process stellarium output

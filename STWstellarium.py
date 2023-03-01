@@ -147,7 +147,10 @@ class stellarium(STWobject.stwObject):
                     # send data to all open connections
                     with self.open_sockets_lock:    
                         for i in self.open_sockets:
-                            i.send(status)
+                            try:
+                                i.send(status)
+                            except: 
+                                continue
 
     def Shutdown(self):
         self.isConfigured = False

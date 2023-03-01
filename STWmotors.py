@@ -20,27 +20,29 @@ class mount(STWMotorsLowLevel.STWMotorsLowLevel):
         # Init defaults
         super().Init(comPort = self.comportDevStr)
         # for safety reasons softstop motors
-        self.SoftStopMotors()
+        self.SoftStopMotors(wait=True)
         # set motors to default angles
         self.Axis0_SetAngle2Zero()
         self.Axis1_SetAngle2Zero()    
         self.log.debug("Mount at telescope angles %f %f", self.Axis0_Angle(), self.Axis1_Angle())
             
     def Shutdown(self):
-        self.SoftStopMotors()
+        self.SoftStopMotors(wait=True)
         super().Shutdown()
 
     def SetConstantSpeed(self, lonps, latps):
         self.Axis0_Run(lonps)        
         self.Axis1_Run(latps)
 
-    def SoftStopMotors(self):
+    def SoftStopMotors(self, wait = False):
         self.log.debug("Softstop Motors. Wait.")    
         self.Axis0_SoftStop()
         self.Axis1_SoftStop()
-        self.WaitSoftStop(0)
-        self.WaitSoftStop(1)
-        self.log.debug("Motors stopped.")    
+
+        if wait:
+            self.WaitSoftStop(0)
+            self.WaitSoftStop(1)
+            self.log.debug("Wait for halt (blocks).")       
         
     def CheckErrors(self):
         ret = self.GetErrorStatus(0)

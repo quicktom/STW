@@ -49,28 +49,25 @@ class StickyApp:
 
         # Main widget
         self.mainwindow = frame
-        
-    def update_clock(self):
-        # get current time as text
 
         try:
-            with open('actual.json', 'r') as f:
-                file_data = json.load(f)
-                f.close()
+            self.f = open('actual.json', 'r')
+        except: 
+            self.f = False
 
-                self.status['text'] =                           file_data["state"]["UTC"] + " " + \
-                                        "J2000 Target " +        file_data["state"]["targetJ2000Str"]
-                
-                self.data['text']   =   "Telescope " +          file_data["state"]["telescopeActualStr"] + " " + \
-                                        "Telescope target " +   file_data["state"]["targetActualStr"]
-                
-                self.action['text'] =                           file_data["state"]["ActualActionStr"]
-
-        except: # may master locks, so try again later 
-            pass
-
-    # run itself again after 250 ms
-        root.after(250, app.update_clock) 
+    def update_clock(self):
+        # get current time as text
+        try:
+            self.f.seek(0)
+            file_data = json.load(self.f)
+            self.status['text'] =   file_data["state"]["UTC"] + " " + \
+                                    "J2000 Target " +        file_data["state"]["targetJ2000Str"]                
+            self.data['text']   =   "Telescope " +          file_data["state"]["telescopeActualStr"] + " " + \
+                                    "Telescope target " +   file_data["state"]["targetActualStr"]
+            self.action['text'] =   file_data["state"]["ActualActionStr"]
+            root.after(250, app.update_clock)
+        except:  
+            root.after(25, app.update_clock)
 
     def run(self):
         self.mainwindow.mainloop()

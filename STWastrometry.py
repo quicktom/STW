@@ -230,8 +230,8 @@ class astroguide(STWobject.stwObject):
         ts = max(self.EstimateSlewingTime(londps, latdps))
         return self.Target.lon + ts * tlondps, self.Target.lat + ts * tlatdps
 
-    def GetUTCTimeStrFromEt(self, et):
-        return spiceypy.timout(et, "YYYY-MON-DD HR:MN:SC.# ::UTC ::RND")    
+    def GetUTCTimeStrFromEt(self, et, fmt = "YYYY-MON-DD HR:MN:SC.# ::UTC ::RND"):
+        return spiceypy.timout(et, fmt)    
     
     def GetSecPastJ2000TDBNow(self, str=None, offset=0):
         return self.astrometry.GetSecPastJ2000TDBNow(str, offset)
