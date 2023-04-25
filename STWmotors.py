@@ -40,7 +40,7 @@ class mount(STWMotorsLowLevel.STWMotorsLowLevel):
         self.Axis1_SoftStop()
 
         if wait:
-            self.log.debug("Wait for halt (blocks).")       
+            self.log.debug("Wait for halt (blocks program).")       
             self.WaitSoftStop(0)
             self.WaitSoftStop(1)
         

@@ -109,10 +109,32 @@ class board(STWobject.stwObject):
             # 
             quit()
             
-
         # upper level must check and quit
         self.isInitialized = True
 
+        # reset serial buffers
+        self.serialPort.reset_output_buffer()
+        self.serialPort.reset_input_buffer()
+
+        # send NOPs to clear com protocol
+        for _ in range(1,16):
+            self.NopCmd(0)
+            self.NopCmd(1)
+
+        # check com protocol
+        # try GETSTATUS from motor driver 0,1
+        # on reponse it is good
+        status, _ = self.__SendReceiveCmd(0, "GETSTATUS", True)
+        if not status:
+            self.log.fatal("Motor driver 0 does not respond.")
+            quit()
+  
+        status, _ = self.__SendReceiveCmd(1, "GETSTATUS", True)
+        if not status:
+            self.log.fatal("Motor driver 1 does not respond.")
+            quit()
+
+        # load motor config 
         if loadConfigFromFile:
             self.log.info("Load motor config from file.")
             self.LoadConfigRegistersFromFile(0, M0RegisterConfig)
@@ -120,6 +142,8 @@ class board(STWobject.stwObject):
         else:
             self.log.info("Use motor config from firmware.")
         
+        
+
         self.log.info("Motors initialized.")
 
     def Shutdown(self):
@@ -137,6 +161,11 @@ class board(STWobject.stwObject):
 
             # Check answers to detect errors
             if checkRetValue:
+                # check empty return value
+                if receiveFromMotor and not ret:
+                    self.log.error("Empty return value <%s>.", cmd)
+                    return False, -1 
+
                 # ret is "ERROR"
                 # malformed cmd sent
                 if ret == "ERROR":
@@ -215,6 +244,10 @@ class board(STWobject.stwObject):
         status = self.__SendReceiveCmd(motorId, "HARDHIZ")
         return status
     
+    def NopCmd(self, motorId):
+        status = self.__SendReceiveCmd(motorId, "NOP")
+        return status
+    
     #Configure 
     def GetRegs(self, motorId, dict):
         return {x: self.GetParam(motorId, x) for x in dict }
@@ -240,6 +273,13 @@ class board(STWobject.stwObject):
             fp.close()
         
         self.SetRegs(motorId, data)
+
+        # verify register file written 
+        regs = self.GetRegs(motorId, self.ConfigRegs)
+        for x in self.ConfigRegs:
+            if regs[x] != data[x]:
+                self.log.fatal("Could not verify register file.")
+                quit()
 
         # L6470 datasheet p. 64
         # When the motor is in high impedance state, a SoftStop command forces the bridges to exit
@@ -416,10 +456,7 @@ class board(STWobject.stwObject):
             pass
 
     def WaitSoftStop(self, motorId):
-        self.log.debug("WaitSoftStop.")
-
-        self.SoftStop(motorId)
-                
+        self.log.debug("WaitSoftStop.")                
         self.WaitIsBusy(motorId)
         
         return True
@@ -476,20 +513,20 @@ def main():
     print(m.GetErrorStatus(1))
 
 
-    m.SetPosCmd(0,0)
-    print(m.GetPosCmd(0))
-    m.GotoPosCmdDir(0, 1000)
-    m.WaitIsBusy(0)
-    print(m.GetPosCmd(0))
-    m.GotoPosCmdDir(0, -1000)
-    m.WaitIsBusy(0)
-    print(m.GetPosCmd(0))
-    m.GotoPosCmdDir(0, 1000)
-    m.WaitIsBusy(0)
-    print(m.GetPosCmd(0))
-    m.GotoPosCmdDir(0, 0)
-    m.WaitIsBusy(0)
-    print(m.GetPosCmd(0))
+ #   m.SetPosCmd(0,0)
+ #   print(m.GetPosCmd(0))
+ #   m.GotoPosCmdDir(0, 1000)
+ #   m.WaitIsBusy(0)
+ #   print(m.GetPosCmd(0))
+ #   m.GotoPosCmdDir(0, -1000)
+ #   m.WaitIsBusy(0)
+ #   print(m.GetPosCmd(0))
+ #   m.GotoPosCmdDir(0, 1000)
+ #   m.WaitIsBusy(0)
+ #   print(m.GetPosCmd(0))
+ #   m.GotoPosCmdDir(0, 0)
+ #   m.WaitIsBusy(0)
+ #   print(m.GetPosCmd(0))
 
 if __name__ == "__main__":
     main()
