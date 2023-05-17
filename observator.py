@@ -54,7 +54,8 @@ def main():
     #   east false
     parser = argparse.ArgumentParser()
     parser.add_argument("--debugOff",    help="Print informations only.", action="store_true")
-    parser.add_argument("--westPier",    help="Set telescope to west pier.", action="store_false")
+    # if not set EastPier then telescoep is in westPier
+    parser.add_argument("--EastPier",    help="Set telescope to East pier.", action="store_false")
     parser.add_argument("--comport",     help="Set serial comport device string.", nargs='?', default="COM6", type=str)
 
     args = parser.parse_args()
@@ -68,12 +69,12 @@ def main():
     logger.info("------------------------------------------------------")
     logger.info("Program configuration:")
     logger.info("debugOff               : %r", args.debugOff)
-    logger.info("westPier               : %r", args.westPier)
+    logger.info("westPier               : %r", args.EastPier)
     logger.info("Comport device string  : %s", args.comport)
     logger.info("------------------------------------------------------")
 
 # basic configuration phase
-    comp = STWcomponents.components(logger, args.westPier, args.comport)
+    comp = STWcomponents.components(logger, args.EastPier, args.comport)
 
 # initialization phase
     comp.Init()

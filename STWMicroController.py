@@ -57,6 +57,11 @@
     30.08.2022
     - TODO StepClockMode: Pin PA9 TIM1_CH2 connect J3  / Pin PC7 TIM3_CH2 connect to J4 
 
+    26.04.2023
+    - TODO OCD anpassen, wegen Fehler bei Teleskopbewegung
+    - TODO MAX_SPEED anpassen, wegen Schrittfehler
+    - TODO ACC, DEC anpassen, wegen zu großer Verzögerung bei Start/Stop 
+
 """
 
 import STWobject
@@ -101,7 +106,8 @@ class board(STWobject.stwObject):
         self.log.info("Initialize board.")
 
         try:
-            self.serialPort = serial.Serial(comPort, 115200, serial.EIGHTBITS, serial.PARITY_NONE, serial.STOPBITS_ONE, 0.01, True)
+            self.serialPort = serial.Serial(comPort, 115200, serial.EIGHTBITS, serial.PARITY_NONE,\
+                                             serial.STOPBITS_ONE, timeout = 0.01, xonxoff = True, rtscts = False, dsrdtr = False)
         except:
             self.log.fatal("Unable to open serial port.")
             self.log.fatal("Hard quit program.")

@@ -36,7 +36,7 @@ class components(STWobject.stwObject):
         self.TimeOffsetSec = 0
         
         # slewing speed is a fraction of maxspeed
-        self.SlewSpeedFactor   = 0.1  
+        self.SlewSpeedFactor   = 0.5  
 
         # mount is tracking
         self.IsMountTracking = False
@@ -74,8 +74,8 @@ class components(STWobject.stwObject):
 
         # try to get time offset to system time via NTP
         ret = self.sys.GetNtpOffsetSec()
-        self.TimeOffsetSec = ret[1]
         if ret[0]:
+            self.TimeOffsetSec = ret[1]
             self.log.info("Time offset to NTP Server is %3.2fs", self.TimeOffsetSec)
         else:   
             self.log.info("Unable to detect time offset to NTP Server")
@@ -140,7 +140,7 @@ class components(STWobject.stwObject):
                 #           B   is tracking on/off is stop mount
                 #           S1  is slew telescope to stellarium target
                 #           S2  is sync telescope coords to stellarium reference
-                #           A   is not defined
+                #           A   is log current state 
 
             match remote:
 
@@ -200,9 +200,20 @@ class components(STWobject.stwObject):
                         self.ActualActionStr = "Tracking."
 
                 case 'D':
-                    self.log.debug("D user control command received.")
+                    if self.SlewSpeedFactor > 0.1:
+                        self.SlewSpeedFactor = self.SlewSpeedFactor - 0.1
+                    else:
+                        self.SlewSpeedFactor = 0.1
+
+                    self.log.debug("Set SlewSpeedFactor to %f", self.SlewSpeedFactor)
+                
                 case 'C':
-                    self.log.debug("C user control command received.")
+                    if self.SlewSpeedFactor < 0.9:
+                        self.SlewSpeedFactor = self.SlewSpeedFactor + 0.1
+                    else:
+                        self.SlewSpeedFactor = 0.9
+
+                    self.log.debug("Set SlewSpeedFactor to %f", self.SlewSpeedFactor)
 
                 case 'A':
                     self.DoDataLog(CurrentEt)
@@ -229,7 +240,7 @@ class components(STWobject.stwObject):
         loopPeriodic.startJob(CurrentEt)
 
         # update to stellarium
-        stellariumPeriodicSend = STWJob.STWJob(0.2) # 0.5 secs 
+        stellariumPeriodicSend = STWJob.STWJob(0.2) # 0.2 secs 
         stellariumPeriodicSend.startJob(CurrentEt)
 
         # print stattistics
