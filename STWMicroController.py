@@ -66,7 +66,7 @@
 
 import STWobject
 import serial, string
-import json 
+import json
 
 class board(STWobject.stwObject):
 
@@ -107,7 +107,7 @@ class board(STWobject.stwObject):
 
         try:
             self.serialPort = serial.Serial(comPort, 115200, serial.EIGHTBITS, serial.PARITY_NONE,\
-                                             serial.STOPBITS_ONE, timeout = 0.01, xonxoff = True, rtscts = False, dsrdtr = False)
+                                             serial.STOPBITS_ONE, xonxoff = True, rtscts = False, dsrdtr = False)
         except:
             self.log.fatal("Unable to open serial port.")
             self.log.fatal("Hard quit program.")
@@ -121,11 +121,6 @@ class board(STWobject.stwObject):
         # reset serial buffers
         self.serialPort.reset_output_buffer()
         self.serialPort.reset_input_buffer()
-
-        # send NOPs to clear com protocol
-        for _ in range(1,16):
-            self.NopCmd(0)
-            self.NopCmd(1)
 
         # check com protocol
         # try GETSTATUS from motor driver 0,1
@@ -154,6 +149,9 @@ class board(STWobject.stwObject):
 
     def Shutdown(self):
         if self.isInitialized:
+            # reset serial buffers
+            self.serialPort.reset_output_buffer()
+            self.serialPort.reset_input_buffer()
             self.serialPort.close() 
  
     #Send and Receive from motordriver
@@ -175,7 +173,7 @@ class board(STWobject.stwObject):
                 # ret is "ERROR"
                 # malformed cmd sent
                 if ret == "ERROR":
-                    self.log.error("Error <%s>.", cmd)
+                    self.log.error("Error <%s>.", cmd[:-1])
                     if receiveFromMotor:
                         return False, -1
                     else:
@@ -284,7 +282,7 @@ class board(STWobject.stwObject):
         regs = self.GetRegs(motorId, self.ConfigRegs)
         for x in self.ConfigRegs:
             if regs[x] != data[x]:
-                self.log.fatal("Could not verify register file.")
+                self.log.fatal("Could not verify register file. (failed at " + x + ")")
                 quit()
 
         # L6470 datasheet p. 64

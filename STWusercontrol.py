@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ STWusercontrol module of the observator project.
 
-This module abstracts astrometry functions.
+This module abstracts remote functions.
 
 Todo:
 
@@ -17,6 +17,7 @@ import struct
 import logging
 import hid
 import STWobject
+import time
 
 # ubuntu
 # sudo chmod a+rw /dev/hidraw5
@@ -70,7 +71,7 @@ class uc(STWobject.stwObject):
 
         self.JOY_STICK_X_S = self.JOY_STICK_AXIS_X_S_IDLE
         self.JOY_STICK_Y_S = self.JOY_STICK_AXIS_Y_S_IDLE
-
+        
         self.log.info('Switch on controler and press @+B for game mode.')
 
         self.h = False
@@ -98,7 +99,7 @@ class uc(STWobject.stwObject):
         while not self.exitthread.is_set():
             try:
                 if self.h:
-                    data = self.h.read(size=9, timeout=0)
+                    data = self.h.read(size=9, timeout=0) 
                 else:
                     # device is not open or something
                     raise Exception
@@ -222,7 +223,10 @@ class uc(STWobject.stwObject):
             return False
         else:
             return self.PollDataQuene.get(block=False)
-
+        
+    def clear(self):
+        with self.PollDataQuene.mutex:
+            self.PollDataQuene.queue.clear()        
 
 def main():
 

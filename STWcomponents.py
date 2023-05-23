@@ -153,7 +153,6 @@ class components(STWobject.stwObject):
 
                 case 'S2':
                     self.log.debug("Set telescope reference.")
-                    self.mount.SoftStopMotors(wait=True)
                     self.mount.Axis0_SetAngle(self.astroguide.Target.lon)
                     self.mount.Axis1_SetAngle(self.astroguide.Target.lat)
                     self.ActualActionStr = "Got reference point."
@@ -257,11 +256,12 @@ class components(STWobject.stwObject):
         while not self.ControlCDetected:
             CurrentEt = self.astroguide.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
 
+            # process user input
+            self.DoUserControlJob(CurrentEt)
+            
             # do periodic ...
             if loopPeriodic.doJob(CurrentEt):
-                # process user input
-                self.DoUserControlJob(CurrentEt)
-   
+ 
                 # process stellarium input
                 self.DoStellariumInput(CurrentEt)
 
