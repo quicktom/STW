@@ -73,10 +73,11 @@ class stellarium(STWobject.stwObject):
         self.SendQuene = queue.Queue()
 
         self.listening_thread_event = threading.Event()
-        self.listening_thread       = threading.Thread(target=self.listen)
+    
+        self.listening_thread       = threading.Thread(target=self.listen, daemon=True)
         
         self.send_thread_event      = threading.Event()
-        self.send_thread_thread     = threading.Thread(target=self.send)
+        self.send_thread_thread     = threading.Thread(target=self.send, daemon=True)
         
         self.listening_thread.start()
         self.send_thread_thread.start()
@@ -136,7 +137,7 @@ class stellarium(STWobject.stwObject):
         while not self.send_thread_event.is_set():
 
             if not self.SendQuene.empty():
-                ret = self.SendQuene.get(block=False)
+                ret = self.SendQuene.get(block=False) 
 
                 if ret:
                     ra = int(ret[0]*(0x80000000/180.0))

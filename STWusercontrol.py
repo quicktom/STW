@@ -17,7 +17,6 @@ import struct
 import logging
 import hid
 import STWobject
-import time
 
 # ubuntu
 # sudo chmod a+rw /dev/hidraw5
@@ -79,7 +78,7 @@ class uc(STWobject.stwObject):
 
         self.PollDataQuene = queue.Queue()
         self.exitthread = threading.Event()
-        self.getEventThread = threading.Thread(target=self.getEvent)
+        self.getEventThread = threading.Thread(target=self.getEvent, daemon=True)
         self.getEventThread.start()
 
         self.isConfigured = True
@@ -166,6 +165,7 @@ class uc(STWobject.stwObject):
 
                 # if self.YCOORD_CHANGED:
                 #     self.PollDataQuene.put('Y' + str(self.YCOORD),  block = False)
+
 
     def decode(self, data):
         if len(data) == 9:

@@ -98,7 +98,7 @@ FRAME_1399894_CENTER            = 399899
 OBJECT_399894_FRAME             = 'CC_TOPO'
 TKFRAME_CC_TOPO_RELATIVE        = 'DYNSTW_TOPO'
 TKFRAME_CC_TOPO_SPEC            = 'MATRIX'
-TKFRAME_CC_TOPO_MATRIX          = ( 1,0,0,
+TKFRAME_CC_TOPO_MATRIX          = (-1,0,0,
                                     0,1,0,
                                     0,0,1)
 

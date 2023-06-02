@@ -62,6 +62,9 @@
     - TODO MAX_SPEED anpassen, wegen Schrittfehler
     - TODO ACC, DEC anpassen, wegen zu großer Verzögerung bei Start/Stop 
 
+    24.05.2023
+    - Serial timeout zu kurz -> stabil bei inf
+    - ACC, DEC zu klein -> testen bei größerer Werten erforderlich
 """
 
 import STWobject
@@ -106,7 +109,7 @@ class board(STWobject.stwObject):
         self.log.info("Initialize board.")
 
         try:
-            self.serialPort = serial.Serial(comPort, 115200, serial.EIGHTBITS, serial.PARITY_NONE,\
+            self.serialPort = serial.Serial(comPort, 921600, serial.EIGHTBITS, serial.PARITY_NONE,\
                                              serial.STOPBITS_ONE, xonxoff = True, rtscts = False, dsrdtr = False)
         except:
             self.log.fatal("Unable to open serial port.")
@@ -156,7 +159,7 @@ class board(STWobject.stwObject):
  
     #Send and Receive from motordriver
     def __SendReceiveCmd(self, motorId, sendToMotorStr, receiveFromMotor = False, checkRetValue = True):
-        if(self.isInitialized):   
+        if self.isInitialized:   
             cmd = "M"+ str(motorId) + "." + sendToMotorStr + '\r'
             # send command to X-CUBE-SPN2
             self.serialPort.write(bytes(cmd,'utf-8'))
@@ -176,8 +179,8 @@ class board(STWobject.stwObject):
                     self.log.error("Error <%s>.", cmd[:-1])
                     if receiveFromMotor:
                         return False, -1
-                    else:
-                        return False
+                    
+                    return False
 
                 # ret malformed hexnumber or empty ret
                 if receiveFromMotor and not all(c in string.hexdigits for c in ret):
@@ -197,25 +200,26 @@ class board(STWobject.stwObject):
         return status
 
     def GetParam(self, motorId, paramStr):
-        status, answer = self.__SendReceiveCmd(motorId, "GETPARAM."  + paramStr, True)
+        __, answer = self.__SendReceiveCmd(motorId, "GETPARAM."  + paramStr, True)
         return answer
 
     # higher level functions
-    def Run(self, motorId, dir, speed):
-        status = self.__SendReceiveCmd(motorId, "RUN."  + dir + "." + str(speed))
+    def Run(self, motorId, direction, speed):
+        status = self.__SendReceiveCmd(motorId, "RUN."  + direction + "." + str(speed))
         return status
 
-    def Move(self, motorId, dir, steps):
-        status = self.__SendReceiveCmd(motorId, "MOVE."  + dir + "." + str(steps))
+    def Move(self, motorId, direction, steps):
+        status = self.__SendReceiveCmd(motorId, "MOVE."  + direction + "." + str(steps))
         return status
 
-    def StepClockMode(self, motorId, dir):
-        status = self.__SendReceiveCmd(motorId, "STEPCLOCK."  + dir)
+    def StepClockMode(self, motorId, direction):
+        status = self.__SendReceiveCmd(motorId, "STEPCLOCK."  + direction)
         return status
 
-    def GotoDir(self, motorId, dir, abs_pos):
-        status = self.__SendReceiveCmd(motorId, "GOTO_DIR." + dir + "." + str(abs_pos))
-
+    def GotoDir(self, motorId, direction, abs_pos):
+        status = self.__SendReceiveCmd(motorId, "GOTO_DIR." + direction + "." + str(abs_pos))
+        return status
+    
     def Goto(self, motorId, abs_pos):
         status = self.__SendReceiveCmd(motorId, "GOTO."  + str(abs_pos))
         return status
@@ -253,8 +257,8 @@ class board(STWobject.stwObject):
         return status
     
     #Configure 
-    def GetRegs(self, motorId, dict):
-        return {x: self.GetParam(motorId, x) for x in dict }
+    def GetRegs(self, motorId, regdict):
+        return {x: self.GetParam(motorId, x) for x in regdict }
 
     def SetRegs(self, motorId, data):
         return {x: self.SetParam(motorId, x, data[x]) for x in data }
@@ -319,21 +323,21 @@ class board(STWobject.stwObject):
         else:
             if (position >= self.L6470_MIN_POSITION) & (position < 0):
                 return int(position + (self.L6470_POSITION_RANGE + 1))
-            else:
-                return int(self.L6470_POSITION_RANGE + 1)        
+            
+            return int(self.L6470_POSITION_RANGE + 1)        
     
     # from register to value
     def AbsPos2Pos(self, abspos):
         if (abspos > self.L6470_MAX_POSITION):
             return abspos - (self.L6470_POSITION_RANGE + 1)
-        else:
-            return abspos
+        
+        return abspos
 
     def StepsHz2SpeedReg(self, StepsHz):
         if StepsHz <= (self.L6470_MAX_SPEED * (self.L6470_SPEEDREG_2_STEPSHZ)):
             return int(float(StepsHz) / (self.L6470_SPEEDREG_2_STEPSHZ))
-        else:
-            return 0 # warning  
+        
+        return 0 # warning  
 
     def SpeedReg2StepsHz(self, reg):
         return reg * self.L6470_SPEEDREG_2_STEPSHZ

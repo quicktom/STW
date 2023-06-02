@@ -9,9 +9,11 @@ Todo:
 
 import STWobject, STWsystem, STWastrometry, STWusercontrol, STWstellarium, STWJob, STWMotors
 
-import json, time
+import json
 
 from signal import signal, SIGINT
+
+from  tictoc import Timer
 
 class components(STWobject.stwObject):
     def __init__(self, logger, Aligned2WestPier, comportDevStr):
@@ -36,7 +38,7 @@ class components(STWobject.stwObject):
         self.TimeOffsetSec = 0
         
         # slewing speed is a fraction of maxspeed
-        self.SlewSpeedFactor   = 0.5  
+        self.SlewSpeedFactor   = 0.1  
 
         # mount is tracking
         self.IsMountTracking = False
@@ -153,6 +155,7 @@ class components(STWobject.stwObject):
 
                 case 'S2':
                     self.log.debug("Set telescope reference.")
+                    self.mount.SoftStopMotors(wait= True)
                     self.mount.Axis0_SetAngle(self.astroguide.Target.lon)
                     self.mount.Axis1_SetAngle(self.astroguide.Target.lat)
                     self.ActualActionStr = "Got reference point."
@@ -177,12 +180,14 @@ class components(STWobject.stwObject):
 
                 case 'YU':
                     self.IsMountTracking = False
-                    self.mount.SlewConstantSpeed(1, self.SlewSpeedFactor, self.mount.Axis1_GetMaxSpeed(), 1)
+                    # slew with slow axis speed
+                    self.mount.SlewConstantSpeed(1, self.SlewSpeedFactor, self.mount.Axis0_GetMaxSpeed(), 1)
                     self.ActualActionStr = "Move."
 
                 case 'YD':
                     self.IsMountTracking = False
-                    self.mount.SlewConstantSpeed(1, self.SlewSpeedFactor, self.mount.Axis1_GetMaxSpeed(), -1)
+                    # slew with slow axis speed
+                    self.mount.SlewConstantSpeed(1, self.SlewSpeedFactor, self.mount.Axis0_GetMaxSpeed(), -1)
                     self.ActualActionStr = "Move."
 
                 case 'B':
@@ -219,6 +224,8 @@ class components(STWobject.stwObject):
                     
                 case _: self.log.error("Undefinded user control command %s received.", remote)
 
+            
+
     def DoStellariumInput(self, CurrentEt):
         ret, ra, de  = self.stellarium.ReceiveFromStellarium()
         if ret:
@@ -235,15 +242,15 @@ class components(STWobject.stwObject):
         CurrentEt = self.astroguide.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
 
         # periodic process inputs and outputs 
-        loopPeriodic = STWJob.STWJob(0.1)           # 0.1 secs
+        loopPeriodic = STWJob.STWJob(0.5)           # 0.5 secs
         loopPeriodic.startJob(CurrentEt)
 
         # update to stellarium
-        stellariumPeriodicSend = STWJob.STWJob(0.2) # 0.2 secs 
+        stellariumPeriodicSend = STWJob.STWJob(0.5) # 0.5 secs 
         stellariumPeriodicSend.startJob(CurrentEt)
 
         # print stattistics
-        statisticsPeriodic = STWJob.STWJob(2)       # 2 secs
+        statisticsPeriodic = STWJob.STWJob(1)       # 1 secs
         statisticsPeriodic.startJob(CurrentEt)
 
         # set default target
@@ -258,24 +265,23 @@ class components(STWobject.stwObject):
 
             # process user input
             self.DoUserControlJob(CurrentEt)
-            
-            # do periodic ...
+
+            # update target and actual telescope state
+            # do periodic ...                  
             if loopPeriodic.doJob(CurrentEt):
- 
                 # process stellarium input
                 self.DoStellariumInput(CurrentEt)
-
-                # update target and actual telescope state    
-                self.astroguide.SetTarget(CurrentEt, self.astroguide.Target.ra, self.astroguide.Target.de)
-                self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
 
             if stellariumPeriodicSend.doJob(CurrentEt):
                 # process stellarium output
                 self.DoStellariumOutput()
 
             if statisticsPeriodic.doJob(CurrentEt):
-                self.log.debug("Telescope Target %f,%f", self.astroguide.Target.lon, self.astroguide.Target.lat)
-                self.log.debug("Telescope Actual %f,%f", self.astroguide.Actual.lon, self.astroguide.Actual.lat)
+                with Timer('SetActual'):
+                    self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
+
+                self.log.debug(
+                    "Telescope Target %f,%f", self.astroguide.Target.lon, self.astroguide.Target.lat)
+                self.log.debug(
+                        "Telescope Actual %f,%f", self.astroguide.Actual.lon, self.astroguide.Actual.lat)
                 
-                # check mount for errors
-                self.mount.CheckErrors()
