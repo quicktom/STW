@@ -16,7 +16,7 @@ from signal import signal, SIGINT
 from  tictoc import Timer
 
 class components(STWobject.stwObject):
-    def __init__(self, logger, Aligned2WestPier, comportDevStr):
+    def __init__(self, logger, Aligned2WestPier, comportDevStr, RemoteReverseMode = True):
         super().__init__(logger)
 
         # abstract system functions
@@ -26,7 +26,7 @@ class components(STWobject.stwObject):
         self.astroguide = STWastrometry.astroguide(self.log, Aligned2WestPier)
 
         # abstract user input functions
-        self.uc         = STWusercontrol.uc(self.log)
+        self.uc         = STWusercontrol.uc(self.log, RemoteReverseMode)
 
         # abstract stellarium functions
         self.stellarium = STWstellarium.stellarium(self.log)

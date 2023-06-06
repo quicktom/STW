@@ -25,10 +25,16 @@ import STWobject
 
 class uc(STWobject.stwObject):
 
+    def __init__(self, logger, reverseStick = True):
+        super().__init__(logger)
+        self.reverseStick = reverseStick
+        if self.reverseStick:
+            self.log.info("Remote in reverse mode.")
+
     def Init(self):
         self.log.info("Initialize UserControl.")
         return super().Init()
-
+    
     KEY_RELEASED = 0
     KEY_A_PRESSED = 16
     KEY_B_PRESSED = 1
@@ -51,7 +57,6 @@ class uc(STWobject.stwObject):
         self.vid = 1452
         self.pid = 12850
         self.path = b'\\\\?\\HID#{00001124-0000-1000-8000-00805f9b34fb}_VID&000205ac_PID&3232&Col04#8&16f637c6&2&0003#{4d1e55b2-f16f-11cf-88cb-001111000030}'
-        # self.path =  b'/dev/hidraw5'
 
         # game pad
         self.button_A = self.KEY_RELEASED
@@ -176,11 +181,17 @@ class uc(STWobject.stwObject):
                 X_S = self.JOY_STICK_X
                 Y_S = self.JOY_STICK_Y
 
+                if self.reverseStick:
+                    Ypos = 255 - cdata[0]
+                    XPos = 255 - cdata[1]
+                else:
+                    Ypos = cdata[0]
+                    XPos = cdata[1]
+
+
                 # state
-                self.JOY_STICK_X = self.JOY_STICK_AXIS_X_RIGHT if cdata[
-                    1] < 64 else self.JOY_STICK_AXIS_X_LEFT if cdata[1] > 192 else self.JOY_STICK_AXIS_X_CENTER
-                self.JOY_STICK_Y = self.JOY_STICK_AXIS_Y_UP if cdata[
-                    0] < 64 else self.JOY_STICK_AXIS_Y_DOWN if cdata[0] > 192 else self.JOY_STICK_AXIS_Y_CENTER
+                self.JOY_STICK_X = self.JOY_STICK_AXIS_X_RIGHT if XPos < 64 else self.JOY_STICK_AXIS_X_LEFT if XPos > 192 else self.JOY_STICK_AXIS_X_CENTER
+                self.JOY_STICK_Y = self.JOY_STICK_AXIS_Y_UP    if Ypos < 64 else self.JOY_STICK_AXIS_Y_DOWN if Ypos > 192 else self.JOY_STICK_AXIS_Y_CENTER
 
                 # stick coordinates
                 # if self.XCOORD != cdata[1]:
