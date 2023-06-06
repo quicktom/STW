@@ -67,9 +67,10 @@
     - ACC, DEC zu klein -> testen bei größerer Werten erforderlich
 """
 
-import STWobject
-import serial, string
 import json
+import string, serial
+import STWobject
+
 
 class board(STWobject.stwObject):
 

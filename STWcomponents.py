@@ -242,15 +242,15 @@ class components(STWobject.stwObject):
         CurrentEt = self.astroguide.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
 
         # periodic process inputs and outputs 
-        loopPeriodic = STWJob.STWJob(0.5)           # 0.5 secs
+        loopPeriodic = STWJob.STWJob(0.25)           # 0.5 secs
         loopPeriodic.startJob(CurrentEt)
 
         # update to stellarium
-        stellariumPeriodicSend = STWJob.STWJob(0.5) # 0.5 secs 
+        stellariumPeriodicSend = STWJob.STWJob(0.25) # 0.5 secs 
         stellariumPeriodicSend.startJob(CurrentEt)
 
-        # print stattistics
-        statisticsPeriodic = STWJob.STWJob(1)       # 1 secs
+        # print statistics
+        statisticsPeriodic = STWJob.STWJob(1)     # 1 secs
         statisticsPeriodic.startJob(CurrentEt)
 
         # set default target
@@ -261,6 +261,7 @@ class components(STWobject.stwObject):
         self.lonps, self.latps = self.astroguide.EstimateTargetAngularSpeed()
 
         while not self.ControlCDetected:
+            
             CurrentEt = self.astroguide.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
 
             # process user input
@@ -271,17 +272,17 @@ class components(STWobject.stwObject):
             if loopPeriodic.doJob(CurrentEt):
                 # process stellarium input
                 self.DoStellariumInput(CurrentEt)
+                # update target and telescope state
+                self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
+                self.astroguide.SetTarget(CurrentEt, self.astroguide.Target.ra, self.astroguide.Target.de)
 
             if stellariumPeriodicSend.doJob(CurrentEt):
                 # process stellarium output
                 self.DoStellariumOutput()
 
             if statisticsPeriodic.doJob(CurrentEt):
-                with Timer('SetActual'):
-                    self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
-
                 self.log.debug(
                     "Telescope Target %f,%f", self.astroguide.Target.lon, self.astroguide.Target.lat)
                 self.log.debug(
-                        "Telescope Actual %f,%f", self.astroguide.Actual.lon, self.astroguide.Actual.lat)
+                    "Telescope Actual %f,%f", self.astroguide.Actual.lon, self.astroguide.Actual.lat)
                 

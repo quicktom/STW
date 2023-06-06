@@ -136,22 +136,25 @@ class stellarium(STWobject.stwObject):
     def send(self):
         while not self.send_thread_event.is_set():
 
-            if not self.SendQuene.empty():
-                ret = self.SendQuene.get(block=False) 
+            if self.SendQuene.empty():
+                time.sleep(0.1)
+                continue
 
-                if ret:
-                    ra = int(ret[0]*(0x80000000/180.0))
-                    de = int(ret[1]*(0x40000000/ 90.0))
+            ret = self.SendQuene.get() 
+            
+            if ret:
+                ra = int(ret[0]*(0x80000000/180.0))
+                de = int(ret[1]*(0x40000000/ 90.0))
 
-                    status = struct.pack("=hhQIii", 24, 0, 0, ra, de, 0)
+                status = struct.pack("=hhQIii", 24, 0, 0, ra, de, 0)
 
-                    # send data to all open connections
-                    with self.open_sockets_lock:    
-                        for i in self.open_sockets:
-                            try:
-                                i.send(status)
-                            except: 
-                                continue
+                        # send data to all open connections
+                with self.open_sockets_lock:    
+                    for i in self.open_sockets:
+                        try:
+                            i.send(status)
+                        except: 
+                            continue
 
     def Shutdown(self):
         self.isConfigured = False

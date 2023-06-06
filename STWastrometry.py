@@ -169,9 +169,9 @@ class astroguide(STWobject.stwObject):
             et, self.Target.ra, self.Target.de, self.Aligned2WestPier)
 
         # get azimutal coords of target
-        # self.Target.Azimut = lambda: 0
-        # self.Target.Azimut.lon, self.Target.Azimut.lat = astro.RaDeJ20002LonLatAzmimutal(
-        #   et, ra, de)
+        self.Target.Azimut = lambda: 0
+        self.Target.Azimut.lon, self.Target.Azimut.lat = astro.RaDeJ20002LonLatAzmimutal(
+            et, ra, de)
 
         #self.log.debug("Telescope target is %s (J2000 %s)(Az %s)", 
         #    self.astrometry.GetTelescopeCoordsString(self.Target.lon, self.Target.lat),
@@ -192,9 +192,9 @@ class astroguide(STWobject.stwObject):
             et, self.Actual.lon, self.Actual.lat, self.Aligned2WestPier)
 
         # get azimutal coords of target
-        # self.Actual.Azimut = lambda: 0
-        # self.Actual.Azimut.lon, self.Actual.Azimut.lat = astro.RaDeJ20002LonLatAzmimutal(
-        #        et, self.Actual.ra, self.Actual.de)
+        self.Actual.Azimut = lambda: 0
+        self.Actual.Azimut.lon, self.Actual.Azimut.lat = astro.RaDeJ20002LonLatAzmimutal(
+               et, self.Actual.ra, self.Actual.de)
 
     def AngularSeparation(self):
         # Get angular separation between target and actual coords

@@ -18,6 +18,7 @@ import logging
 import hid
 import STWobject
 
+
 # ubuntu
 # sudo chmod a+rw /dev/hidraw5
 
