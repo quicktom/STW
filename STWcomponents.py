@@ -226,13 +226,14 @@ class components(STWobject.stwObject):
 
             
 
-    def DoStellariumInput(self, CurrentEt):
+    def DoStellariumInput(self):
         ret, ra, de  = self.stellarium.ReceiveFromStellarium()
         if ret:
-            self.astroguide.SetTarget(CurrentEt, ra, de)
+            # set new target
+            self.astroguide.Target.ra = ra
+            self.astroguide.Target.de = de
     
     def DoStellariumOutput(self):
-        # Simulation reflects target lon, lat
         self.stellarium.SendToStellarium(self.astroguide.Actual.ra, self.astroguide.Actual.de)
 
     # main loop, non blocking
@@ -242,15 +243,11 @@ class components(STWobject.stwObject):
         CurrentEt = self.astroguide.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
 
         # periodic process inputs and outputs 
-        loopPeriodic = STWJob.STWJob(0.25)           # 0.5 secs
+        loopPeriodic = STWJob.STWJob(0.250)           
         loopPeriodic.startJob(CurrentEt)
 
-        # update to stellarium
-        stellariumPeriodicSend = STWJob.STWJob(0.25) # 0.5 secs 
-        stellariumPeriodicSend.startJob(CurrentEt)
-
         # print statistics
-        statisticsPeriodic = STWJob.STWJob(1)     # 1 secs
+        statisticsPeriodic = STWJob.STWJob(1.000)        
         statisticsPeriodic.startJob(CurrentEt)
 
         # set default target
@@ -264,21 +261,18 @@ class components(STWobject.stwObject):
             
             CurrentEt = self.astroguide.GetSecPastJ2000TDBNow(offset = self.TimeOffsetSec)
 
-            # process user input
+            # process user input as fast as comes input
             self.DoUserControlJob(CurrentEt)
 
             # update target and actual telescope state
-            # do periodic ...                  
             if loopPeriodic.doJob(CurrentEt):
-                # process stellarium input
-                self.DoStellariumInput(CurrentEt)
-                # update target and telescope state
+                # update from motors the actual telescope state and stellarium 
                 self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
-                self.astroguide.SetTarget(CurrentEt, self.astroguide.Target.ra, self.astroguide.Target.de)
-
-            if stellariumPeriodicSend.doJob(CurrentEt):
-                # process stellarium output
                 self.DoStellariumOutput()
+                
+                # update from stellarium the target state
+                self.DoStellariumInput()
+                self.astroguide.SetTarget(CurrentEt, self.astroguide.Target.ra, self.astroguide.Target.de)
 
             if statisticsPeriodic.doJob(CurrentEt):
                 self.log.debug(

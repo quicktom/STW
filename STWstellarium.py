@@ -63,29 +63,22 @@ class stellarium(STWobject.stwObject):
         self.open_sockets = []
         self.open_sockets_lock =  threading.Lock()
 
-        self.listening_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+        self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.listening_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        #self.listening_socket.setblocking(False)
+        
         self.listening_socket.bind( ("localhost", 10001) )
-        self.listening_socket.listen(1)
+        self.listening_socket.listen(5)
 
         self.listenQuene = queue.Queue()
-        self.SendQuene = queue.Queue()
 
-        self.listening_thread_event = threading.Event()
-    
-        self.listening_thread       = threading.Thread(target=self.listen, daemon=True)
-        
-        self.send_thread_event      = threading.Event()
-        self.send_thread_thread     = threading.Thread(target=self.send, daemon=True)
-        
+        self.listening_thread_event = threading.Event()    
+        self.listening_thread       = threading.Thread(target=self.listen, daemon=True)                
         self.listening_thread.start()
-        self.send_thread_thread.start()
 
         return super().Config()
 
     def SendToStellarium(self, ra_deg, de_deg):
-        self.SendQuene.put([ra_deg, de_deg], block=False)
+        self.SendSync(ra_deg, de_deg)
 
     def ReceiveFromStellarium(self):
         if not self.listenQuene.empty():
@@ -116,13 +109,12 @@ class stellarium(STWobject.stwObject):
                         continue
 
                     if not data:
-                        # if no data was returned then close connection
+                        # if no data was returned is close connection
                         with self.open_sockets_lock:
                             self.open_sockets.remove(i)                        
                         i.close()
                         self.log.info("Connection closed to Stellarium")                           
                     else:
-
                         if len(data) == struct.calcsize("3iIi"): 
                             data = struct.unpack("=hhQIi", data)
                             
@@ -132,38 +124,26 @@ class stellarium(STWobject.stwObject):
                             self.listenQuene.put([ra,de])
                         else:
                             self.log.debug("Stellarium connection wrong data received.")                            
+     
+    def SendSync(self, ra, de):
+        ra_s = int(ra*(0x80000000/180.0))
+        de_s = int(de*(0x40000000/ 90.0))
 
-    def send(self):
-        while not self.send_thread_event.is_set():
+        status = struct.pack("=hhQIii", 24, 0, 0, ra_s, de_s, 0)
 
-            if self.SendQuene.empty():
-                time.sleep(0.1)
-                continue
-
-            ret = self.SendQuene.get() 
-            
-            if ret:
-                ra = int(ret[0]*(0x80000000/180.0))
-                de = int(ret[1]*(0x40000000/ 90.0))
-
-                status = struct.pack("=hhQIii", 24, 0, 0, ra, de, 0)
-
-                        # send data to all open connections
-                with self.open_sockets_lock:    
-                    for i in self.open_sockets:
-                        try:
-                            i.send(status)
-                        except: 
-                            continue
+        # send data to all open connections
+        with self.open_sockets_lock:    
+            for i in self.open_sockets:
+                try:
+                    i.send(status)
+                except: 
+                    continue
 
     def Shutdown(self):
         self.isConfigured = False
       
         self.listening_thread_event.set()
         self.listening_thread.join()
-
-        self.send_thread_event.set()
-        self.send_thread_thread.join()
 
         for i in self.open_sockets:
             self.open_sockets.remove(i)

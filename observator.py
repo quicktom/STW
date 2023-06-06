@@ -96,8 +96,5 @@ def main():
     
     logger.info("Shutdown. Exit program.")
 
-import cProfile
-
 if __name__ == "__main__":
     main()
-    #cProfile.run('main()')
