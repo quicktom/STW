@@ -70,7 +70,7 @@ def main():
             print('pressed')
             print( pressed)
 
-        pressed = k.listenReleaseded() 
+        pressed = k.listenReleaseded()
         if pressed:
             print('released')
             print(pressed)

@@ -116,6 +116,8 @@ class board(STWobject.stwObject):
             self.log.fatal("Unable to open serial port.")
             self.log.fatal("Hard quit program.")
             self.isInitialized = False
+            print("Press Enter to continue ...")
+            input() 
             # 
             quit()
             

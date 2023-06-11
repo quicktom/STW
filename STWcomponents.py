@@ -131,6 +131,24 @@ class components(STWobject.stwObject):
             json.dump(file_data, datafile, indent = 4)
             datafile.close()
 
+    def DoActualLog(self, CurrentEt):
+
+        with open('actual.json', 'w') as datafile:
+            file_data = {}
+            file_data["state"] = []
+
+            state = {   "UTC":                  self.astroguide.GetUTCTimeStrFromEt(CurrentEt),    
+                        "targetJ2000Str":       self.astroguide.astrometry.GetJ2000CoordsString(self.astroguide.Target.ra, self.astroguide.Target.de),
+                        "telescopeJ2000Str":    self.astroguide.astrometry.GetJ2000CoordsString(self.astroguide.Actual.ra, self.astroguide.Actual.de),
+                        "IsWestPier":           self.astroguide.Aligned2WestPier,
+                        "ActionStr":            self.ActualActionStr  }
+            
+            file_data["state"].append(state)
+            
+            json.dump(file_data, datafile, indent = 4)
+     
+
+
     def DoUserControlJob(self, CurrentEt):
         # get user inputs
         remote = self.uc.listen()
@@ -224,7 +242,13 @@ class components(STWobject.stwObject):
                     
                 case _: self.log.error("Undefinded user control command %s received.", remote)
 
-            
+        if self.mount.GetErrorStatus(0):
+            self.log.warning("Motor control error")
+
+        if self.mount.GetErrorStatus(1):
+            self.log.warning("Motor control error")
+
+        
 
     def DoStellariumInput(self):
         ret, ra, de  = self.stellarium.ReceiveFromStellarium()
@@ -273,6 +297,9 @@ class components(STWobject.stwObject):
                 # update from stellarium the target state
                 self.DoStellariumInput()
                 self.astroguide.SetTarget(CurrentEt, self.astroguide.Target.ra, self.astroguide.Target.de)
+
+                # write states to file for external apps
+                self.DoActualLog(CurrentEt)
 
             if statisticsPeriodic.doJob(CurrentEt):
                 self.log.debug(

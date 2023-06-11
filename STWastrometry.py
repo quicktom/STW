@@ -273,7 +273,7 @@ def main():
 
     # a.Shutdown()
 
-    g = astroguide(logging.getLogger())
+    g = astroguide(logging.getLogger(), True)
 
     g.Init()
 
@@ -287,7 +287,7 @@ def main():
 
     print(g.AngularSeparation())
 
-    print(g.EstimateSlewingTime(0.1, 0.1))
+    print(g.EstimateSlewingTime())
 
     print(g.EstimateTargetAngularSpeed())
 
