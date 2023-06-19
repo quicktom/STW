@@ -5,6 +5,9 @@ This module abstracts remote functions.
 
 Todo:
 
+Note: 
+
+Linux needs sudo chmod 666 /dev/hidraw5
 """
 
 # windows
@@ -56,8 +59,8 @@ class uc(STWobject.stwObject):
     def Config(self):
         self.vid = 1452
         self.pid = 12850
-        self.path = b'\\\\?\\HID#{00001124-0000-1000-8000-00805f9b34fb}_VID&000205ac_PID&3232&Col04#8&16f637c6&2&0003#{4d1e55b2-f16f-11cf-88cb-001111000030}'
-
+        self.path = b'\\\\?\\HID#{00001124-0000-1000-8000-00805f9b34fb}_VID&000205ac_PID&3232&Col04#8&16f637c6&3&0003#{4d1e55b2-f16f-11cf-88cb-001111000030}'
+        #self.path = b'/dev/hidraw5'
         # game pad
         self.button_A = self.KEY_RELEASED
         self.button_B = self.KEY_RELEASED

@@ -51,7 +51,15 @@ class StickyApp:
             font=("Arial", 12))
         self.action.grid(column=0, row = 3, padx=10)
 
-        frame.grid(column=2, row=3)
+        self.vsep = ttk.Label(frame)  
+
+        self.vsep.configure(
+            text='vsep',
+            width=45,
+            font=("Arial", 12))
+        self.vsep.grid(column=0, row = 4, padx=10)
+
+        frame.grid(column=2, row=4)
 
         # Main widget
         self.mainwindow = frame
@@ -64,8 +72,10 @@ class StickyApp:
             f.close()
             self.status["text"] =  "J2000 Telescope " + file_data["state"][0]["telescopeJ2000Str"]
             self.data  ["text"] =  "J2000 Target    " + file_data["state"][0]["targetJ2000Str"]
-            self.banner["text"] =   file_data["state"][0]["UTC"] 
-            self.action["text"] =   file_data["state"][0]["ActionStr"]
+            self.banner["text"] =  file_data["state"][0]["UTC"] 
+            self.action["text"] =  file_data["state"][0]["ActionStr"]
+            self.vsep  ["text"] =  "Telescope to target separation " +  file_data["state"][0]["AngularSeparation"]
+
             root.after(1000, app.update_clock)
         except:  
             root.after(250, app.update_clock)

@@ -66,7 +66,7 @@ class STWMotorsLowLevel(STWMicroController.board):
         actual = self.Axis0_RunActualSpeed(angle_per_s)   
         error = actual - angle_per_s        
         
-        self.log.debug("Axis0_Run %f degs/s (actual %f degs/s, error %f(?) arcsecs/h)", angle_per_s, actual, error*3600*60*60)
+        self.log.debug("Axis0_Run %f degs/s (actual %f degs/s, error %f(?) arcsec/s)", angle_per_s, actual, error*3600)
 
         return self.RunCmd(0, stepsps)
 

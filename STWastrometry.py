@@ -198,8 +198,8 @@ class astroguide(STWobject.stwObject):
 
     def AngularSeparation(self):
         # Get angular separation between target and actual coords
-        return spiceypy.vsep(spiceypy.latrec(1, self.Target.ra * spiceypy.rpd(), self.Target.de * spiceypy.rpd()),
-                             spiceypy.latrec(1, self.Actual.ra * spiceypy.rpd(), self.Actual.de * spiceypy.rpd())) * spiceypy.dpr()
+        return spiceypy.vsep(spiceypy.latrec(1, self.Target.lon * spiceypy.rpd(), self.Target.lat * spiceypy.rpd()),
+                             spiceypy.latrec(1, self.Actual.lon * spiceypy.rpd(), self.Actual.lat * spiceypy.rpd())) * spiceypy.dpr()
 
     def EstimateSlewingTime(self, londps, latdps):
         # Estimate slewing time from actual to target coord position based on average speeds

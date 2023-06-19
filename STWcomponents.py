@@ -137,11 +137,12 @@ class components(STWobject.stwObject):
             file_data = {}
             file_data["state"] = []
 
-            state = {   "UTC":                  self.astroguide.GetUTCTimeStrFromEt(CurrentEt),    
+            state = {   "UTC":                  self.astroguide.GetUTCTimeStrFromEt(CurrentEt, fmt = "YYYY-MON-DD HR:MN:SC ::UTC ::RND"),    
                         "targetJ2000Str":       self.astroguide.astrometry.GetJ2000CoordsString(self.astroguide.Target.ra, self.astroguide.Target.de),
                         "telescopeJ2000Str":    self.astroguide.astrometry.GetJ2000CoordsString(self.astroguide.Actual.ra, self.astroguide.Actual.de),
                         "IsWestPier":           self.astroguide.Aligned2WestPier,
-                        "ActionStr":            self.ActualActionStr  }
+                        "ActionStr":            self.ActualActionStr,
+                        "AngularSeparation":    self.astroguide.astrometry.ddeg2dms(self.astroguide.AngularSeparation()) }
             
             file_data["state"].append(state)
             
@@ -166,6 +167,7 @@ class components(STWobject.stwObject):
 
                 case 'S1':
                     self.log.debug("Slew telescope to target.")
+                    self.mount.SoftStopMotors(wait=True)
                     self.mount.Axis0_SlewTo(self.astroguide.Target.lon)
                     self.mount.Axis1_SlewTo(self.astroguide.Target.lat)
                     self.ActualActionStr = "Slew to target."
@@ -173,10 +175,12 @@ class components(STWobject.stwObject):
 
                 case 'S2':
                     self.log.debug("Set telescope reference.")
-                    self.mount.SoftStopMotors(wait= True)
+                    # true stop needed to set lon, lat
+                    self.mount.SoftStopMotors(wait=True)
                     self.mount.Axis0_SetAngle(self.astroguide.Target.lon)
                     self.mount.Axis1_SetAngle(self.astroguide.Target.lat)
                     self.ActualActionStr = "Got reference point."
+                    self.IsMountTracking = False
 
                 case 'XC':
                     self.mount.Axis0_SoftStop()
@@ -209,7 +213,7 @@ class components(STWobject.stwObject):
                     self.ActualActionStr = "Move."
 
                 case 'B':
-                    if(self.IsMountTracking):
+                    if self.IsMountTracking:
                         self.log.debug("Stop constant speed tracking")
                         self.IsMountTracking = False
                         self.mount.SoftStopMotors()
@@ -247,8 +251,6 @@ class components(STWobject.stwObject):
 
         if self.mount.GetErrorStatus(1):
             self.log.warning("Motor control error")
-
-        
 
     def DoStellariumInput(self):
         ret, ra, de  = self.stellarium.ReceiveFromStellarium()
@@ -298,12 +300,11 @@ class components(STWobject.stwObject):
                 self.DoStellariumInput()
                 self.astroguide.SetTarget(CurrentEt, self.astroguide.Target.ra, self.astroguide.Target.de)
 
-                # write states to file for external apps
-                self.DoActualLog(CurrentEt)
-
             if statisticsPeriodic.doJob(CurrentEt):
                 self.log.debug(
                     "Telescope Target %f,%f", self.astroguide.Target.lon, self.astroguide.Target.lat)
                 self.log.debug(
                     "Telescope Actual %f,%f", self.astroguide.Actual.lon, self.astroguide.Actual.lat)
                 
+                # write states to file for external apps
+                self.DoActualLog(CurrentEt)                
