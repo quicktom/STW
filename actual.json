@@ -1,12 +1,12 @@
 {
     "state": [
         {
-            "UTC": "2023-JUN-19 09:38:35",
-            "targetJ2000Str": "+004h05m55.23s -000d03m48.01s",
-            "telescopeJ2000Str": "+004h05m57.35s -000d03m48.69s",
+            "UTC": "2023-JUN-20 13:20:10",
+            "targetJ2000Str": "+007h53m26.98s +000d03m36.59s",
+            "telescopeJ2000Str": "+007h53m41.05s +000d03m37.01s",
             "IsWestPier": true,
-            "ActionStr": "Tracking.",
-            "AngularSeparation": "+000d00m31.84s"
+            "ActionStr": "Start up",
+            "AngularSeparation": "+000d03m30.91s"
         }
     ]
 }

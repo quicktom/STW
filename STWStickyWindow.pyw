@@ -6,6 +6,7 @@ import json
 
 class StickyApp:
     def __init__(self, master=None):
+
         # build ui
         astrostyle = ttk.Style(master)
         astrostyle.configure("TButton", foreground="red", background="black")
@@ -17,8 +18,8 @@ class StickyApp:
         self.exit = ttk.Button(frame)
         self.exit.configure(text='Exit')
         self.exit.grid(column=1, row=0)
-        self.exit.bind("<ButtonPress>", self.callbackExit, add="")
-
+        self.exit.bind('<ButtonPress>', self.quit)
+    
         self.banner = ttk.Label(frame)  
         
         self.banner.configure(
@@ -63,7 +64,7 @@ class StickyApp:
 
         # Main widget
         self.mainwindow = frame
-            
+
     def update_clock(self):
         # get current time as text
         try:
@@ -83,10 +84,8 @@ class StickyApp:
     def run(self):
         self.mainwindow.mainloop()
 
-    def callbackExit(self, event=None):
-
-        self.mainwindow.quit()
-
+    def quit(self):
+        pass
 
 if __name__ == "__main__":
     root = tk.Tk()

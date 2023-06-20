@@ -1,6 +1,8 @@
 #import ctypes
 #ctypes.CDLL('./hidapi/x64/hidapi.dll')
 
+# sudo apt install libhidapi-dev
+
 import hid
 
 s = hid.enumerate()

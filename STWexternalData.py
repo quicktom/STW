@@ -14,7 +14,7 @@ UtilDirectory           = "pub/naif/utilities/PC_Windows_64bit/"
 
 LSKFile     = "naif0012.tls"
 TPCFile     = "pck00010.tpc"
-BPCFile     = "earth_200101_990628_predict.bpc"
+BPCFile     = "earth_200101_990825_predict.bpc"
 DE440File   = "de440.bsp"
 # PinpointExe = "pinpoint.exe"
 # BriefExe    = "brief.exe"
