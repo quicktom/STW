@@ -7,6 +7,8 @@ import json
 class StickyApp:
     def __init__(self, master=None):
 
+        self.root = master
+
         # build ui
         astrostyle = ttk.Style(master)
         astrostyle.configure("TButton", foreground="red", background="black")
@@ -84,8 +86,8 @@ class StickyApp:
     def run(self):
         self.mainwindow.mainloop()
 
-    def quit(self):
-        pass
+    def quit(self, a):
+        self.root.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
