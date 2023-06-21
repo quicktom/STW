@@ -287,12 +287,6 @@ def main():
 
     print(g.AngularSeparation())
 
-    print(g.EstimateSlewingTime())
-
-    print(g.EstimateTargetAngularSpeed())
-
-    print(g.EstimateSlewingToTargetAngles(0.1, 0.1))
-
     g.Shutdown()
 
 

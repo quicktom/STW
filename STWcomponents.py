@@ -7,7 +7,7 @@ Todo:
 
 """
 
-import STWobject, STWsystem, STWastrometry, STWusercontrol, STWstellarium, STWJob, STWmotors
+import STWobject, STWsystem, STWastrometry, STWusercontrol, STWstellarium, STWJob, STWMotors
 
 import json
 
@@ -32,7 +32,7 @@ class components(STWobject.stwObject):
         self.stellarium = STWstellarium.stellarium(self.log)
         
         # abstract telescope mount functions
-        self.mount      = STWmotors.mount(self.log, comportDevStr)
+        self.mount      = STWMotors.mount(self.log, comportDevStr)
         
         # ntp time offset
         self.TimeOffsetSec = 0

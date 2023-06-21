@@ -63,7 +63,8 @@ class uc(STWobject.stwObject):
         if dev:
             self.path = dev
         else:
-            self.path = ''
+            self.log.fatal("Remote not found.")
+            quit()
 
         self.button_A = self.KEY_RELEASED
         self.button_B = self.KEY_RELEASED
@@ -103,8 +104,8 @@ class uc(STWobject.stwObject):
             if device['vendor_id'] == vid and device['product_id'] == pid and device['usage'] == 5:
                 return device['path'] 
 
-        self.log.critical("Paired remote HZ2746 was not found.")
-        self.log.critical("Check bluetooth settings.")
+        self.log.fatal("Remote HZ2746 was not found.")
+        self.log.fatal("Switch on remote and check bluetooth settings.")
 
         return False    
 
@@ -204,7 +205,6 @@ class uc(STWobject.stwObject):
                 else:
                     Ypos = cdata[0]
                     XPos = cdata[1]
-
 
                 # state
                 self.JOY_STICK_X = self.JOY_STICK_AXIS_X_RIGHT if XPos < 64 else self.JOY_STICK_AXIS_X_LEFT if XPos > 192 else self.JOY_STICK_AXIS_X_CENTER
