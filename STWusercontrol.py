@@ -71,7 +71,8 @@ class uc(STWobject.stwObject):
         if not sys.platform == "win32": 
             if not os.access(dev, os.R_OK):
                 self.log.fatal("Remote ist not readable.")
-                self.log.fatal("Set permissions: sudo chmod a+rw {0}.", dev)
+                self.log.fatal("Set permissions: sudo chmod a+rw %s.", dev)
+                quit()
 
         self.button_A = self.KEY_RELEASED
         self.button_B = self.KEY_RELEASED

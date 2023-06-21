@@ -307,4 +307,8 @@ class components(STWobject.stwObject):
                     "Telescope Actual %f,%f", self.astroguide.Actual.lon, self.astroguide.Actual.lat)
                 
                 # write states to file for external apps
-                self.DoActualLog(CurrentEt)                
+                self.DoActualLog(CurrentEt) 
+
+        # save last state
+        self.ActualActionStr = "Leave program loop. Shutdown."
+        self.DoActualLog(CurrentEt)

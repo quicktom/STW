@@ -1,8 +1,10 @@
 #!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
 import tkinter as tk
 import tkinter.ttk as ttk
 
-import json, sys
+import json
 
 class StickyApp:
     def __init__(self, master=None):
@@ -19,7 +21,7 @@ class StickyApp:
 
         self.exit = ttk.Button(frame)
         self.exit.configure(text='Exit')
-        self.exit.grid(column=1, row=0)
+        self.exit.grid(column=0, row=5)
         self.exit.bind('<ButtonPress>', self.quit)
     
         self.banner = ttk.Label(frame)  
@@ -62,7 +64,7 @@ class StickyApp:
             font=("Arial", 12))
         self.vsep.grid(column=0, row = 4, padx=10)
 
-        frame.grid(column=2, row=4)
+        frame.grid(column=1, row=5)
 
         # Main widget
         self.mainwindow = frame
@@ -96,11 +98,6 @@ if __name__ == "__main__":
 
     # make window overlay
     root.overrideredirect(True)
-
-    #if sys.platform == "win32":
-    #    root.wm_attributes("-topmost", True)
-    #else:
-        
     root.attributes('-topmost', True)
  
     # put window left top aligned
