@@ -62,7 +62,6 @@ def main():
     parser.add_argument("--debugOff",       help="Print informations only.", action="store_true")
     # if not set EastPier then telescope is in westPier
     parser.add_argument("--EastPier",       help="Set telescope to East pier.", action="store_true")
-    # /dev/ttyACM0
     parser.add_argument("--comport",        help="Set serial comport device string.", nargs='?', default=defaultComportStr, type=str)
     parser.add_argument("--remoteReverse",  help="Remote in reverse mode.", action="store_true")
 

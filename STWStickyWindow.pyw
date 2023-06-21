@@ -2,7 +2,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 
-import json
+import json, sys
 
 class StickyApp:
     def __init__(self, master=None):
@@ -96,7 +96,12 @@ if __name__ == "__main__":
 
     # make window overlay
     root.overrideredirect(True)
-    root.wm_attributes("-topmost", True)
+
+    #if sys.platform == "win32":
+    #    root.wm_attributes("-topmost", True)
+    #else:
+        
+    root.attributes('-topmost', True)
  
     # put window left top aligned
     root.update()

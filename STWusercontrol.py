@@ -22,7 +22,7 @@ import queue
 import struct
 import logging
 import hid
-import os
+import os, sys
 import STWobject
 
 class uc(STWobject.stwObject):
@@ -67,10 +67,11 @@ class uc(STWobject.stwObject):
             self.log.fatal("Remote not found.")
             quit()
 
-        # ubuntu specific 
-        if not os.access(dev, os.R_OK):
-            self.log.fatal("Remote ist not readable.")
-            self.log.fatal("Set permissions: sudo chmod a+rw {0}.", dev)
+        # ubuntu specific
+        if not sys.platform == "win32": 
+            if not os.access(dev, os.R_OK):
+                self.log.fatal("Remote ist not readable.")
+                self.log.fatal("Set permissions: sudo chmod a+rw {0}.", dev)
 
         self.button_A = self.KEY_RELEASED
         self.button_B = self.KEY_RELEASED
