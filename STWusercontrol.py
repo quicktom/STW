@@ -7,12 +7,15 @@ Todo:
 
 Note: 
 
-Linux needs sudo chmod 666 /dev/hidraw5
+ubuntu: sudo chmod a+rw /dev/hidraw5
+
 """
 
-# windows
-# import ctypes
-# ctypes.CDLL('./hidapi/x64/hidapi.dll')
+# conditional import for windows plattform
+import sys
+if sys.platform == 'win32':
+    import ctypes
+    ctypes.CDLL('./hidapi/x64/hidapi.dll')
 
 import threading
 import queue
@@ -20,11 +23,6 @@ import struct
 import logging
 import hid
 import STWobject
-
-
-# ubuntu
-# sudo chmod a+rw /dev/hidraw5
-
 
 class uc(STWobject.stwObject):
 
@@ -56,13 +54,17 @@ class uc(STWobject.stwObject):
     JOY_STICK_AXIS_Y_CENTER = 0
     JOY_STICK_AXIS_Y_S_IDLE = 4
 
+    REMOTE_VID = 1452
+    REMOTE_PID = 12850
+
     def Config(self):
-        self.vid = 1452
-        self.pid = 12850
-        # windows
-        #self.path = b'\\\\?\\HID#{00001124-0000-1000-8000-00805f9b34fb}_VID&000205ac_PID&3232&Col04#8&16f637c6&3&0003#{4d1e55b2-f16f-11cf-88cb-001111000030}'
-        self.path = b'/dev/hidraw5'
-        # game pad
+        
+        dev = self.DiscoverRemoteDevString(self.REMOTE_VID, self.REMOTE_PID)
+        if dev:
+            self.path = dev
+        else:
+            self.path = ''
+
         self.button_A = self.KEY_RELEASED
         self.button_B = self.KEY_RELEASED
         self.button_C = self.KEY_RELEASED
@@ -95,6 +97,18 @@ class uc(STWobject.stwObject):
 
         return super().Config()
 
+    def DiscoverRemoteDevString(self, vid, pid):
+        s = hid.enumerate()
+        for device in s:
+            if device['vendor_id'] == vid and device['product_id'] == pid and device['usage'] == 5:
+                return device['path'] 
+
+        self.log.critical("Paired remote HZ2746 was not found.")
+        self.log.critical("Check bluetooth settings.")
+
+        return False    
+
+
     def Shutdown(self):
         self.isConfigured = False
 
@@ -117,8 +131,7 @@ class uc(STWobject.stwObject):
                 if not self.supressretry:
                     self.log.info("Try to open HID device.")
                 try:
-                    self.h = hid.Device(
-                        vid=self.vid, pid=self.pid, path=self.path)
+                    self.h = hid.Device(path=self.path)
                 except:
                     # if can not open device then try again
                     self.h = False
