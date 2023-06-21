@@ -14,12 +14,18 @@ import STWcomponents
 __author__      = "Thomas Rinder"
 __copyright__   = "Copyright 2023, The observator Group"
 __credits__     = ["Thomas Rinder"]
-__license__     = "GPL"
+__license__     = "unlicense"
 __version__     = "0.1.0"
 __maintainer__  = "Thomas Rinder"
 __email__       = "thomas.rinder@fh-kiel.de"
 __status__      = "alpha"
 
+
+# plattform depended default comport setting 
+if sys.platform == 'win32':
+    defaultComportStr = 'COM6'
+else:
+    defaultComportStr = '/dev/ttyACM0'
 
 # Configure logger
 def SetupLogging(debug = False):
@@ -57,7 +63,7 @@ def main():
     # if not set EastPier then telescope is in westPier
     parser.add_argument("--EastPier",       help="Set telescope to East pier.", action="store_true")
     # /dev/ttyACM0
-    parser.add_argument("--comport",        help="Set serial comport device string.", nargs='?', default="COM6", type=str)
+    parser.add_argument("--comport",        help="Set serial comport device string.", nargs='?', default=defaultComportStr, type=str)
     parser.add_argument("--remoteReverse",  help="Remote in reverse mode.", action="store_true")
 
     args = parser.parse_args()

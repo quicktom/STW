@@ -14,6 +14,7 @@ UtilDirectory           = "pub/naif/utilities/PC_Windows_64bit/"
 
 LSKFile     = "naif0012.tls"
 TPCFile     = "pck00010.tpc"
+# BPC file may be deleted and replaced by a newer version, check ftp server
 BPCFile     = "earth_200101_990825_predict.bpc"
 DE440File   = "de440.bsp"
 # PinpointExe = "pinpoint.exe"
