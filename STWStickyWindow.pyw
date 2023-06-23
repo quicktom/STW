@@ -77,7 +77,7 @@ class StickyApp:
             f.close()
             self.status["text"] =  "J2000 Telescope " + file_data["state"][0]["telescopeJ2000Str"]
             self.data  ["text"] =  "J2000 Target    " + file_data["state"][0]["targetJ2000Str"]
-            self.banner["text"] =  file_data["state"][0]["UTC"] 
+            self.banner["text"] =  "UTC " + file_data["state"][0]["UTC"] 
             self.action["text"] =  file_data["state"][0]["ActionStr"]
             self.vsep  ["text"] =  "Telescope to target separation " +  file_data["state"][0]["AngularSeparation"]
 
