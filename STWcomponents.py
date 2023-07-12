@@ -226,7 +226,7 @@ class components(STWobject.stwObject):
                         self.ActualActionStr = "Tracking."
 
                 case 'D':
-                    if self.SlewSpeedFactor > 0.1:
+                    if self.SlewSpeedFactor >= 0.2:
                         self.SlewSpeedFactor = self.SlewSpeedFactor - 0.1
                     else:
                         self.SlewSpeedFactor = 0.1
@@ -234,10 +234,10 @@ class components(STWobject.stwObject):
                     self.log.debug("Set SlewSpeedFactor to %f", self.SlewSpeedFactor)
                 
                 case 'C':
-                    if self.SlewSpeedFactor < 0.9:
+                    if self.SlewSpeedFactor <= 0.9:
                         self.SlewSpeedFactor = self.SlewSpeedFactor + 0.1
                     else:
-                        self.SlewSpeedFactor = 0.9
+                        self.SlewSpeedFactor = 1
 
                     self.log.debug("Set SlewSpeedFactor to %f", self.SlewSpeedFactor)
 
