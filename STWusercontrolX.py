@@ -58,14 +58,11 @@ class uc(STWobject.stwObject):
 
                 if event.type == XInput.EVENT_CONNECTED:
                     self.log.info("Remote connected.")
-
-                if event.type == XInput.EVENT_DISCONNECTED:
+                elif event.type == XInput.EVENT_DISCONNECTED:
                     self.log.info("Remote disconnected.")
-
-                if event.type == XInput.BATTERY_LEVEL_LOW:
+                elif event.type == XInput.BATTERY_LEVEL_LOW:
                     self.log.info("Remote Remote Battery low.")
-
-                if event.type == XInput.EVENT_BUTTON_PRESSED:
+                elif event.type == XInput.EVENT_BUTTON_PRESSED:
                     match event.button:
                         case "A" : 
                             self.PollDataQuene.put('A', block=False)
@@ -88,10 +85,8 @@ class uc(STWobject.stwObject):
                         case  "DPAD_DOWN" :
                             self.PollDataQuene.put('YD',  block=False)
                         case  "BACK" :
-                            self.PollDataQuene.put('QT',  block=False)
-
-                                                   
-                if event.type == XInput.EVENT_BUTTON_RELEASED:
+                            self.PollDataQuene.put('QT',  block=False)                                 
+                elif event.type == XInput.EVENT_BUTTON_RELEASED:
                     match event.button:
                         case  "DPAD_LEFT" :
                             self.PollDataQuene.put('XC',  block=False)
