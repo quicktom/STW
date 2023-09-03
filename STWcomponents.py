@@ -7,7 +7,8 @@ Todo:
 
 """
 
-import STWobject, STWsystem, STWastrometry, STWusercontrol, STWstellarium, STWJob, STWMotors
+import STWobject, STWsystem, STWastrometry,  STWstellarium, STWJob, STWMotors
+import STWusercontrolX
 
 import json
 
@@ -26,7 +27,7 @@ class components(STWobject.stwObject):
         self.astroguide = STWastrometry.astroguide(self.log, Aligned2WestPier)
 
         # abstract user input functions
-        self.uc         = STWusercontrol.uc(self.log, RemoteReverseMode)
+        self.uc         = STWusercontrolX.uc(self.log, RemoteReverseMode)
 
         # abstract stellarium functions
         self.stellarium = STWstellarium.stellarium(self.log)
@@ -154,10 +155,10 @@ class components(STWobject.stwObject):
         # get user inputs
         remote = self.uc.listen()
         if remote:
-                #           C   is speed up
-                #           D   is speed down
-                #           Y(+UDC)   is telescope lat
-                #           X(+LRC)   is telescope lon
+                #           X   is speed up     
+                #           Y   is speed down   
+                #           pad up/down(+UDC)   is telescope lat
+                #           pad left/right(+LRC)   is telescope lon
                 #           B   is tracking on/off is stop mount
                 #           S1  is slew telescope to stellarium target
                 #           S2  is sync telescope coords to stellarium reference
@@ -225,7 +226,7 @@ class components(STWobject.stwObject):
                         self.mount.SetConstantSpeed(self.lonps, self.latps)
                         self.ActualActionStr = "Tracking."
 
-                case 'D':
+                case 'Y':
                     if self.SlewSpeedFactor >= 0.2:
                         self.SlewSpeedFactor = self.SlewSpeedFactor - 0.1
                     else:
@@ -233,7 +234,7 @@ class components(STWobject.stwObject):
 
                     self.log.debug("Set SlewSpeedFactor to %f", self.SlewSpeedFactor)
                 
-                case 'C':
+                case 'X':
                     if self.SlewSpeedFactor <= 0.9:
                         self.SlewSpeedFactor = self.SlewSpeedFactor + 0.1
                     else:
@@ -243,7 +244,11 @@ class components(STWobject.stwObject):
 
                 case 'A':
                     self.DoDataLog(CurrentEt)
-                    
+
+                case 'QT':
+                    self.log.debug("Exit program.")
+                    self.ControlCDetected = True
+
                 case _: self.log.error("Undefinded user control command %s received.", remote)
 
         if self.mount.GetErrorStatus(0):
