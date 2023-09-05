@@ -237,42 +237,6 @@ class astroguide(STWobject.stwObject):
         
 def main():
 
-    # a = astro(logging.getLogger())
-
-    # a.Config()
-
-    # timeStr =  a.GetUTCNowTimeStringNow() #"2022-12-03 12:00:03.318539 (UTC+1)"  #
-
-    # print(timeStr)
-
-    # et = a.GetSecPastJ2000TDBNow(timeStr)
-
-    # ra, de = a.SPK2RaDeJ2000(et, 'sun')
-
-    # print("Object J2000    : " + a.GetJ2000CoordsString(ra, de))
-
-    # lon, lat = a.RaDeJ20002LonLatAzmimutal(et, ra, de)
-
-    # print("Object Azimutal : " + a.GetAzimutalCoordsString(lon, lat))
-
-    # lon, lat = a.RaDeJ20002LonLatTelescope(et, ra, de)
-
-    # print("Object Telescope: " + a.GetTelescopeCoordsString(lon, lat))
-
-    # ra, de = a.LonLatTelescope2RaDeJ2000(et, lon, lat)
-
-    # print("Object J2000    : " + a.GetJ2000CoordsString(ra, de) + " from lon, lat telescope")
-
-    # lon, lat = a.RaDeJ20002LonLatTelescope(et, ra, de, False)
-
-    # print("Object Telescope: " + a.GetTelescopeCoordsString(lon, lat) + " East Pier")
-
-    # ra, de = a.LonLatTelescope2RaDeJ2000(et, lon, lat, False)
-
-    # print("Object J2000    : " + a.GetJ2000CoordsString(ra, de) + " from East Pier and lon, lat telescope")
-
-    # a.Shutdown()
-
     g = astroguide(logging.getLogger(), True)
 
     g.Init()
@@ -283,12 +247,16 @@ def main():
 
     g.SetTarget(et, SPKObjectStr='sun')
 
-    g.SetActual(et, 0, 0)
+    lon, lat = astro.RaDeJ20002LonLatTelescope(et, g.Target.ra, g.Target.de)
 
-    print(g.AngularSeparation())
+    ra, de   = astro.LonLatTelescope2RaDeJ2000(et, lon, lat)
+
+    g.SetActual(et, lon, lat)
+
+    print(ra-g.Target.ra, de-g.Target.de)
+    print(g.Target.ra-g.Actual.ra, g.Target.de-g.Actual.de)
 
     g.Shutdown()
-
 
 if __name__ == "__main__":
     main()

@@ -21,6 +21,19 @@ class uc(STWobject.stwObject):
     def __init__(self, logger, reverseStick = True):
         super().__init__(logger)
         self.reverseStick = reverseStick
+
+        if self.reverseStick:
+            self.DPAD_LEFT_CMD  = 'XR'
+            self.DPAD_RIGHT_CMD = 'XL'
+            self.DPAD_UP_CMD    = 'YD'
+            self.DPAD_DOWN_CMD  = 'YU'
+        else:
+            self.DPAD_LEFT_CMD  = 'XL'
+            self.DPAD_RIGHT_CMD = 'XR'
+            self.DPAD_UP_CMD    = 'YU'
+            self.DPAD_DOWN_CMD  = 'YD'
+
+
         if self.reverseStick:
             self.log.info("Remote in reverse mode. Not implemented")
 
@@ -52,10 +65,6 @@ class uc(STWobject.stwObject):
         while not self.exitthread.is_set():
             
             for event in XInput.get_events():
-                # process first remote only
-                if event.user_index != 0:
-                    continue
-
                 if event.type == XInput.EVENT_CONNECTED:
                     self.log.info("Remote connected.")
                 elif event.type == XInput.EVENT_DISCONNECTED:
@@ -77,15 +86,17 @@ class uc(STWobject.stwObject):
                         case "RIGHT_SHOULDER":
                             self.PollDataQuene.put('S2', block=False)
                         case  "DPAD_LEFT" :
-                            self.PollDataQuene.put('XL',  block=False)
+                            self.PollDataQuene.put(self.DPAD_LEFT_CMD, block=False)
                         case  "DPAD_RIGHT" :
-                            self.PollDataQuene.put('XR',  block=False)
+                            self.PollDataQuene.put(self.DPAD_RIGHT_CMD, block=False)
                         case  "DPAD_UP" :
-                            self.PollDataQuene.put('YU',  block=False)
+                            self.PollDataQuene.put(self.DPAD_UP_CMD, block=False)
                         case  "DPAD_DOWN" :
-                            self.PollDataQuene.put('YD',  block=False)
+                            self.PollDataQuene.put(self.DPAD_DOWN_CMD, block=False)
                         case  "BACK" :
-                            self.PollDataQuene.put('QT',  block=False)                                 
+                            self.PollDataQuene.put('QT',  block=False)     
+
+
                 elif event.type == XInput.EVENT_BUTTON_RELEASED:
                     match event.button:
                         case  "DPAD_LEFT" :

@@ -1,4 +1,224 @@
 {
     "data": [
+        {
+            "et": 747207080.6306311,
+            "UTC": "2023-SEP-05 17:30:11.4",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.1595957341293463,
+            "TargetLat": -3.981034730510656e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207087.213955,
+            "UTC": "2023-SEP-05 17:30:18.0",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.18748813529270358,
+            "TargetLat": -4.676375764028124e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207087.8359181,
+            "UTC": "2023-SEP-05 17:30:18.7",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.18958956476702965,
+            "TargetLat": -4.728758095715112e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207089.5329181,
+            "UTC": "2023-SEP-05 17:30:20.4",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.19634565665435155,
+            "TargetLat": -4.897162314458586e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207090.315904,
+            "UTC": "2023-SEP-05 17:30:21.1",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.1996127147316286,
+            "TargetLat": -4.978595204881356e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207090.7659041,
+            "UTC": "2023-SEP-05 17:30:21.6",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.20198587765432344,
+            "TargetLat": -5.03774629936416e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207091.15987,
+            "UTC": "2023-SEP-05 17:30:22.0",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.2030345575458348,
+            "TargetLat": -5.063884335967429e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207091.5369071,
+            "UTC": "2023-SEP-05 17:30:22.4",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.20526564884730486,
+            "TargetLat": -5.119493124076195e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207091.909904,
+            "UTC": "2023-SEP-05 17:30:22.7",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.20634345011657362,
+            "TargetLat": -5.146356445547955e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207092.22491,
+            "UTC": "2023-SEP-05 17:30:23.0",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.20767208203140003,
+            "TargetLat": -5.17947129335286e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207092.6169051,
+            "UTC": "2023-SEP-05 17:30:23.4",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.21001611510935983,
+            "TargetLat": -5.237893239028078e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207092.87587,
+            "UTC": "2023-SEP-05 17:30:23.7",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.21107720828130455,
+            "TargetLat": -5.264339346766842e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207093.3058541,
+            "UTC": "2023-SEP-05 17:30:24.1",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.21220715997167625,
+            "TargetLat": -5.292501439045947e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207094.249963,
+            "UTC": "2023-SEP-05 17:30:25.1",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.216726892023161,
+            "TargetLat": -5.405145786934901e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207094.5252631,
+            "UTC": "2023-SEP-05 17:30:25.3",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.21794934638585622,
+            "TargetLat": -5.43561222257567e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207094.686786,
+            "UTC": "2023-SEP-05 17:30:25.5",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.21794934638585622,
+            "TargetLat": -5.43561222257567e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207094.903946,
+            "UTC": "2023-SEP-05 17:30:25.7",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.2192785296589464,
+            "TargetLat": -5.468738272952639e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207095.1027911,
+            "UTC": "2023-SEP-05 17:30:25.9",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.22039180712047401,
+            "TargetLat": -5.496483248344153e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207095.2870281,
+            "UTC": "2023-SEP-05 17:30:26.1",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.22039180712047401,
+            "TargetLat": -5.496483248344153e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        },
+        {
+            "et": 747207095.5143391,
+            "UTC": "2023-SEP-05 17:30:26.3",
+            "TelescopeLon": 0.0,
+            "TelescopeLat": 0.0,
+            "TargetLon": 0.2214645609963285,
+            "TargetLat": -5.523218201324443e-07,
+            "TargetRa": 256.82947766897774,
+            "TargetDe": 0.031885208613896696,
+            "IsWestPier": true
+        }
     ]
 }

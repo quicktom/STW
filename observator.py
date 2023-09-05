@@ -12,20 +12,16 @@ import logging, sys, argparse
 import STWcomponents
 
 __author__      = "Thomas Rinder"
-__copyright__   = "Copyright 2023, The observator Group"
+__copyright__   = "Copyright 2023, Thomas Rinder"
 __credits__     = ["Thomas Rinder"]
 __license__     = "unlicense"
-__version__     = "0.1.0"
+__version__     = "0.2.0"
 __maintainer__  = "Thomas Rinder"
 __email__       = "thomas.rinder@fh-kiel.de"
 __status__      = "alpha"
 
 
-# plattform depended default comport setting 
-if sys.platform == 'win32':
-    defaultComportStr = 'COM6'
-else:
-    defaultComportStr = '/dev/ttyACM0'
+defaultComportStr = 'COM6' 
 
 # Configure logger
 def SetupLogging(debug = False):
@@ -55,9 +51,6 @@ def SetupLogging(debug = False):
 # main entry
 def main():
     # parse arguments
-    # defaults 
-    #   debugoff false
-    #   east false
     parser = argparse.ArgumentParser()
     parser.add_argument("--debugOff",       help="Print informations only.", action="store_true")
     # if not set EastPier then telescope is in westPier

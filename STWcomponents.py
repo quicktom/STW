@@ -104,33 +104,35 @@ class components(STWobject.stwObject):
         self.log.debug("Log current telescope state.")
         try:
             datafile = open("datadata.json", 'r+')
-            file_data = json.load(datafile)
         except FileNotFoundError:
-            # if not existe create new and start over
             datafile =  open("datadata.json",'w+')
+
+        try: 
+            file_data = json.load(datafile)
+        except json.JSONDecodeError:
             file_data = {}
             file_data["data"] = []                       
-        finally:
-            # update 
-            self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
-      
-            state = {   "et":               CurrentEt,
-                        "UTC":              self.astroguide.GetUTCTimeStrFromEt(CurrentEt),    
-                        "TelescopeLon":     self.astroguide.Actual.lon,  
-                        "TelescopeLat":     self.astroguide.Actual.lat,
-                        "TargetLon":        self.astroguide.Target.lon,
-                        "TargetLat":        self.astroguide.Target.lat,
-                        "TargetRa":         self.astroguide.Target.ra,
-                        "TargetDe":         self.astroguide.Target.de,
-                        "IsWestPier":       self.astroguide.Aligned2WestPier }
-            
-            file_data["data"].append(state)
-            # overwrite file contents
-            datafile.truncate(0)
-            datafile.seek(0)
 
-            json.dump(file_data, datafile, indent = 4)
-            datafile.close()
+        # update 
+        self.astroguide.SetActual(CurrentEt, self.mount.Axis0_Angle(), self.mount.Axis1_Angle())
+      
+        state = {   "et":               CurrentEt,
+                    "UTC":              self.astroguide.GetUTCTimeStrFromEt(CurrentEt),    
+                    "TelescopeLon":     self.astroguide.Actual.lon,  
+                    "TelescopeLat":     self.astroguide.Actual.lat,
+                    "TargetLon":        self.astroguide.Target.lon,
+                    "TargetLat":        self.astroguide.Target.lat,
+                    "TargetRa":         self.astroguide.Target.ra,
+                    "TargetDe":         self.astroguide.Target.de,
+                    "IsWestPier":       self.astroguide.Aligned2WestPier }
+            
+        file_data["data"].append(state)
+        # overwrite file contents
+        datafile.truncate(0)
+        datafile.seek(0)
+
+        json.dump(file_data, datafile, indent = 4)
+        datafile.close()
 
     def DoActualLog(self, CurrentEt):
 
@@ -149,8 +151,6 @@ class components(STWobject.stwObject):
             
             json.dump(file_data, datafile, indent = 4)
      
-
-
     def DoUserControlJob(self, CurrentEt):
         # get user inputs
         remote = self.uc.listen()
