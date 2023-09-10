@@ -33,10 +33,6 @@ class uc(STWobject.stwObject):
             self.DPAD_UP_CMD    = 'YU'
             self.DPAD_DOWN_CMD  = 'YD'
 
-
-        if self.reverseStick:
-            self.log.info("Remote in reverse mode. Not implemented")
-
     def Init(self):
         self.log.info("Initialize UserControl.")
         return super().Init()
