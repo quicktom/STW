@@ -3,7 +3,7 @@
 
 import wget, os
 
-JPLServer = "ftp://naif.jpl.nasa.gov/"
+JPLServer = "https://naif.jpl.nasa.gov/"
 
 BaseDirectory = "pub/naif/generic_kernels/"
 PCKDirectory            = "pck/"
