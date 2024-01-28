@@ -7,70 +7,10 @@
     "off chip registers" needs  firmare_tweaked_v0.3 or higher.
 """
 
-
-"""
-    16.08.2022
-    - erstes Motoren Setup
-    - BEMF ausgeschaltet
-    - Übersetzung und Geschwindigkeit von Motor 0 passt
-
-    Motor 1
-    - TODO Übersetzung von Motor 1 1:83.333 testen
-    - TODO OCD_TH, STALL_TH erhöhen -> höhere KVALS und Geschwindigkeit testen
-
-    Drehrichtung anpassen
-    - TODO Drehung von Ost nach West ist "negativ" testen 
-    - TODO Drehung von Äquator zum Pol ist "positiv" testen
-
-    Tracking
-    - TODO Geschwindigkeit testen  
-
-    17.08.2022
-    - Übersetzung von Motor 1 ist 1:83.333 OK
-    - nach Tuning Kx und MAX_SPEED Motor 0 0.23deg/s und Motor 1 0.38deg/s
-    Motor 0 {"ACC": 10, "DEC": 10, "MAX_SPEED": 72, "MIN_SPEED": 0, "KVAL_HOLD": 0, "KVAL_RUN": 30, "KVAL_ACC": 30, "KVAL_DEC": 30, "INT_SPEED": 1, "ST_SLP": 0, "FN_SLP_ACC": 0, "FN_SLP_DEC": 0, "K_THERM": 0, "OCD_TH": 10, "STALL_TH": 111, "FS_SPD": 0, "STEP_MODE": 0, "ALARM_EN": 255, "CONFIG": 11912}
-    Motor 1 {"ACC": 27, "DEC": 27, "MAX_SPEED": 122, "MIN_SPEED": 0, "KVAL_HOLD": 0, "KVAL_RUN": 42, "KVAL_ACC": 42, "KVAL_DEC": 42, "INT_SPEED": 1, "ST_SLP": 0, "FN_SLP_ACC": 0, "FN_SLP_DEC": 0, "K_THERM": 0, "OCD_TH": 5, "STALL_TH": 65, "FS_SPD": 0, "STEP_MODE": 0, "ALARM_EN": 255, "CONFIG": 11912}
-    - TODO verschiedene Lagen testen ggf. ist das notwendige Drehmoment nicht konstant
-    - Drehung von Ost nach West ist positiv TODO Verdrahtung ändern? Oder ?
-    - Drehung von Äquator zum Pol ist negativ TODO Verdrahtung ändern? Oder ?
-    - Tracking Motor 0 hackt -> TODO Absenkung der KVAL_x für kleine Geschwindigkeiten KVAL_x auf 12 bei SPEED 19
-    - TODO BEMF Einstellung mit dem STM- Tool testen
-
-    18.08.2022
-    - BEMF Motor 0 {"ACC": 10, "DEC": 10, "MAX_SPEED": 75, "MIN_SPEED": 0, "KVAL_HOLD": 0, "KVAL_RUN": 12, "KVAL_ACC": 12, "KVAL_DEC": 12, "INT_SPEED": 2304, "ST_SLP": 1, "FN_SLP_ACC": 6, "FN_SLP_DEC": 6, "K_THERM": 0, "OCD_TH": 10, "STALL_TH": 111, "FS_SPD": 0, "STEP_MODE": 0, "ALARM_EN": 255, "CONFIG": 11912}
-      läuft ohne "Rattern" bei hoher MAX_SPEED (mechanische Begrenzung des Planentengetriebes?) und ohne "Hacken" bei SolarSpeed
-    - TODO StepClockMode für SolarSpeed für bessere Anpassung prüfen
-    - Drehmoment für ein paar Lagen getestet OK
-    - Verdrahtung Motor 0 getauscht Ost->West ist negativ OK
-    - Verdrahtung Motor 1 getauscht Äquator zu Pol ist positiv wenn Linksauslage OK
-    - ACHTUNG: Bei "Rechtssauslage" ist jetzt Äquator zu Pol ist negativ
-    
-    24.08.2022
-    - TODO StepClockMode für SolarSpeed
-
-    27.08.2022
-    - TODO StepClockMode auf (D8) PA9 als TIM1_CH2 als PWM
-
-    29.08.2022
-    - new firmware off chip register REGEX0 as PWM control
-
-    30.08.2022
-    - TODO StepClockMode: Pin PA9 TIM1_CH2 connect J3  / Pin PC7 TIM3_CH2 connect to J4 
-
-    26.04.2023
-    - TODO OCD anpassen, wegen Fehler bei Teleskopbewegung
-    - TODO MAX_SPEED anpassen, wegen Schrittfehler
-    - TODO ACC, DEC anpassen, wegen zu großer Verzögerung bei Start/Stop 
-
-    24.05.2023
-    - Serial timeout zu kurz -> stabil bei inf
-    - ACC, DEC zu klein -> testen bei größerer Werten erforderlich
-"""
-
 import json
 import string, serial
 import STWobject
-
+import MountSpecs
 
 class board(STWobject.stwObject):
 
@@ -105,7 +45,7 @@ class board(STWobject.stwObject):
                 }
          
     #Open motordriver comport
-    def Init(self, loadConfigFromFile = True, M0RegisterConfig = 'M0.json', M1RegisterConfig = 'M1.json', comPort = 'COM6'):
+    def Init(self, loadConfigFromFile = True, M0RegisterConfig = MountSpecs.RAMotorConfigFile, M1RegisterConfig = MountSpecs.DEMotorConfigFile, comPort = 'COM6'):
         
         self.log.info("Initialize board.")
 

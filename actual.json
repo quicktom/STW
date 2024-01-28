@@ -1,12 +1,12 @@
 {
     "state": [
         {
-            "UTC": "2023-SEP-05 17:36:17",
-            "targetJ2000Str": "+017h13m57.73s +000d01m41.47s",
-            "telescopeJ2000Str": "+017h14m04.16s +000d01m41.25s",
+            "UTC": "2024-JAN-17 13:58:37",
+            "targetJ2000Str": "+022h27m56.16s -011d21m32.50s",
+            "telescopeJ2000Str": "+022h27m56.51s -011d21m32.75s",
             "IsWestPier": true,
-            "ActionStr": "Leave program loop. Shutdown.",
-            "AngularSeparation": "+000d01m36.42s"
+            "ActionStr": "Tracking.",
+            "AngularSeparation": "+000d00m05.21s"
         }
     ]
 }

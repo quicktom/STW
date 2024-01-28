@@ -21,7 +21,7 @@ __email__       = "thomas.rinder@fh-kiel.de"
 __status__      = "alpha"
 
 
-defaultComportStr = 'COM6' 
+defaultComportStr = 'COM4' 
 
 # Configure logger
 def SetupLogging(debug = False):

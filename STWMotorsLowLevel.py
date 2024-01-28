@@ -9,6 +9,7 @@
 """
 
 import STWMicroController
+import MountSpecs
 
 class STWMotorsLowLevel(STWMicroController.board):
     # mount specific  ALT7
@@ -17,8 +18,8 @@ class STWMotorsLowLevel(STWMicroController.board):
     # axis "1" is declination 
     # gear ratio from datasheet
     
-    STEPS_PER_REV_0  = 270*62.500*100               # steps per revolution
-    STEPS_PER_REV_1  = 210*83.333*100               # steps per revolution
+    STEPS_PER_REV_0  = MountSpecs.RAStepsPerRevolution               # steps per revolution
+    STEPS_PER_REV_1  = MountSpecs.DEStepsPerRevolution               # steps per revolution
     
     DEGS_PER_STEP_0  = 360.0/STEPS_PER_REV_0        # degrees / steps
     DEGS_PER_STEP_1  = 360.0/STEPS_PER_REV_1        # degrees / steps
