@@ -45,7 +45,7 @@ class board(STWobject.stwObject):
                 }
          
     #Open motordriver comport
-    def Init(self, loadConfigFromFile = True, M0RegisterConfig = MountSpecs.RAMotorConfigFile, M1RegisterConfig = MountSpecs.DEMotorConfigFile, comPort = 'COM6'):
+    def Init(self, loadConfigFromFile = True, M0RegisterConfig = MountSpecs.RAMotorConfigFile, M1RegisterConfig = MountSpecs.DEMotorConfigFile, comPort = 'COM4'):
         
         self.log.info("Initialize board.")
 
@@ -464,11 +464,13 @@ def main():
     print(m.GetErrorStatus(1))
 
 
- #   m.SetPosCmd(0,0)
- #   print(m.GetPosCmd(0))
- #   m.GotoPosCmdDir(0, 1000)
- #   m.WaitIsBusy(0)
- #   print(m.GetPosCmd(0))
+    m.SetPosCmd(0,0)
+    print(m.GetPosCmd(0))
+    m.GotoPosCmdDir(0, 10000)
+    m.WaitIsBusy(0)
+    print(m.GetPosCmd(0))
+    print(m.GetErrorStatus(0))
+    
  #   m.GotoPosCmdDir(0, -1000)
  #   m.WaitIsBusy(0)
  #   print(m.GetPosCmd(0))
