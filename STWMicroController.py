@@ -167,8 +167,12 @@ class board(STWobject.stwObject):
         status = self.__SendReceiveCmd(motorId, "GOTO."  + str(abs_pos))
         return status
 
-    def GetStatus(self, motorId):
+    def GetStatus(self, motorId, checkErrors = True):
         status, answer = self.__SendReceiveCmd(motorId, "GETSTATUS", True)
+
+        if checkErrors:
+            self.GetErrorStatusReg(motorId, answer)
+
         return answer
 
     def ResetPos(self, motorId):
@@ -354,8 +358,7 @@ class board(STWobject.stwObject):
         status = self.GetStatus(motorId)
         return {self.StatusErrorBitsStr[i]: self.StatusErrorBitsPtr[i](self, status) for i in range(0,len(self.StatusErrorBitsPtr))} 
 
-    def GetErrorStatus(self, motorId):
-        status = self.GetStatus(motorId)
+    def GetErrorStatusReg(self, motorId, status):
         ret = {}
 
         for i in range(0,len(self.StatusErrorBitsPtr)):
@@ -364,6 +367,9 @@ class board(STWobject.stwObject):
                 ret[self.StatusErrorBitsStr[i]] = True
 
         return ret
+
+    def GetErrorStatus(self, motorId):
+        return self.GetErrorStatusReg(motorId, self.GetStatus(motorId))
 
     # high level signed goto commands
     def GotoPosCmd(self, motorId, position):
@@ -411,6 +417,13 @@ class board(STWobject.stwObject):
         self.WaitIsBusy(motorId)
         
         return True
+    
+    def GetMircoSteps(self, motorId):
+        ret = self.GetParam(motorId, 'STEP_MODE')
+        if ret > 0 and ret < 8:
+            return float(2**(ret))
+        else:
+            return float(1)
 
     """ firmware specific """
     """ off chip registers for StepClockMode """
@@ -463,17 +476,40 @@ def main():
     print(m.GetErrorStatus(0))
     print(m.GetErrorStatus(1))
 
+    # hysteresis experimental
+    # set a > s
+    # move to start position 0 in positive direction (align gears)
+    # find s such that end position matches start position 
+    # step
+    a = 90*8
+    # hysteresis value
+    s = 17*8
 
     m.SetPosCmd(0,0)
     print(m.GetPosCmd(0))
-    m.GotoPosCmdDir(0, 10000)
-    m.WaitIsBusy(0)
-    print(m.GetPosCmd(0))
+    for i in range(5):
+        # assume that movement without hysteresis
+        m.GotoPosCmdDir(0, a)    
+        while m.isBUSY(m.GetStatus(0)):
+            pass
+
+        # assume that movement in opposite direction with hysteresis 
+        m.GotoPosCmdDir(0, -(a+s))    
+        while m.isBUSY(m.GetStatus(0)):
+            pass
+        # assume that movement in initial direction with hysteresis
+        # should match position 0  
+        m.GotoPosCmdDir(0, 0)    
+        while m.isBUSY(m.GetStatus(0)):
+            pass
+
     print(m.GetErrorStatus(0))
-    
+    print(m.GetPosCmd(0))
+ #   print(m.GetErrorStatus(0))   
  #   m.GotoPosCmdDir(0, -1000)
  #   m.WaitIsBusy(0)
  #   print(m.GetPosCmd(0))
+ #   print(m.GetErrorStatus(0)) 
  #   m.GotoPosCmdDir(0, 1000)
  #   m.WaitIsBusy(0)
  #   print(m.GetPosCmd(0))

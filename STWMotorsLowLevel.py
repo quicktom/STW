@@ -12,32 +12,18 @@ import STWMicroController
 import MountSpecs
 
 class STWMotorsLowLevel(STWMicroController.board):
-    # mount specific  ALT7
-    #
-
-    # axis "1" is declination 
-    # gear ratio from datasheet
-    
-    STEPS_PER_REV_0  = MountSpecs.RAStepsPerRevolution               # steps per revolution
-    STEPS_PER_REV_1  = MountSpecs.DEStepsPerRevolution               # steps per revolution
-    
-    DEGS_PER_STEP_0  = 360.0/STEPS_PER_REV_0        # degrees / steps
-    DEGS_PER_STEP_1  = 360.0/STEPS_PER_REV_1        # degrees / steps
-
-    STEPS_PER_DEG_0  = 1.0/DEGS_PER_STEP_0          # steps / degress
-    STEPS_PER_DEG_1  = 1.0/DEGS_PER_STEP_1          # steps / degress
 
     def StepsPerAngle(self, motorId, angle):
         if motorId == 0:
-            return  angle*self.STEPS_PER_DEG_0 
+            return  angle*(MountSpecs.RAStepsPerRevolution*self.GetMircoSteps(0)/360) 
         else:
-            return  angle*self.STEPS_PER_DEG_1 
+            return  angle*(MountSpecs.DEStepsPerRevolution*self.GetMircoSteps(1)/360) 
 
     def AnglePerSteps(self, motorId, steps):
         if motorId == 0:
-            return  steps*self.DEGS_PER_STEP_0 
+            return  360.0*steps/(MountSpecs.RAStepsPerRevolution*self.GetMircoSteps(0))
         else:
-            return  steps*self.DEGS_PER_STEP_1 
+            return  360.0*steps/(MountSpecs.DEStepsPerRevolution*self.GetMircoSteps(1)) 
         
     #
     # final mount driver low level driver
@@ -61,35 +47,22 @@ class STWMotorsLowLevel(STWMicroController.board):
 
     # run at constant degrees per sec
     def Axis0_Run(self, angle_per_s):
-        stepsps = self.StepsPerAngle(0, angle_per_s)
-
-        # actual angle_per_s and its error to angle_per_s
-        actual = self.Axis0_RunActualSpeed(angle_per_s)   
-        error = actual - angle_per_s        
-        
-        self.log.debug("Axis0_Run %f degs/s (actual %f degs/s, error %f(?) arcsec/s)", angle_per_s, actual, error*3600)
-
-        return self.RunCmd(0, stepsps)
-
-    # get actual speed degrees per sec (estimate)
-    def Axis0_RunActualSpeed(self, angle_per_s):
-        return self.AnglePerSteps(0, self.SpeedReg2StepsHz(self.StepsHz2SpeedReg(self.StepsPerAngle(0, angle_per_s))))
+        return self.RunCmd(0, self.StepsPerAngle(0, angle_per_s)/self.GetMircoSteps(0))
 
     def Axis1_Run(self, angle_per_s):
-        self.log.debug("Axis1_Run %f degs/s", angle_per_s)
-        return self.RunCmd(1, self.StepsPerAngle(1, angle_per_s))
+        return self.RunCmd(1, self.StepsPerAngle(1, angle_per_s)/self.GetMircoSteps(0))
 
     def Axis0_Angle(self):
-        return self.GetPosCmd(0) * self.DEGS_PER_STEP_0
+        return self.AnglePerSteps(0, self.GetPosCmd(0))
 
     def Axis1_Angle(self):
-        return self.GetPosCmd(1) * self.DEGS_PER_STEP_1
+        return self.AnglePerSteps(1, self.GetPosCmd(1))
 
     def Axis0_SetAngle(self, angle):
-        return self.SetPosCmd(0, angle*self.STEPS_PER_DEG_0)
+        return self.SetPosCmd(0, self.StepsPerAngle(0, angle))
 
     def Axis1_SetAngle(self, angle):
-        return self.SetPosCmd(1, angle*self.STEPS_PER_DEG_1)
+        return self.SetPosCmd(1, self.StepsPerAngle(1, angle))
         
     # soft stop movement 
     def Axis0_SoftStop(self):
@@ -120,22 +93,19 @@ class STWMotorsLowLevel(STWMicroController.board):
 
     def Axis0_GetMaxSpeed(self):  
         reg = self.GetParam(0, "MAX_SPEED")
-
-        ret = 15.2588 * float(reg) * self.DEGS_PER_STEP_0 # step / s * deg / step
-
+        ret = self.AnglePerSteps(0, 15.2588 * float(reg)*self.GetMircoSteps(0))
         self.log.debug("Axis0_GetMaxSpeed %f degs/s", ret)
         return ret
 
-    def Axis1_GetMaxSpeed(self): # steps / s
+    def Axis1_GetMaxSpeed(self): 
         reg = self.GetParam(1, "MAX_SPEED")
-        ret = 15.2588 * float(reg) * self.DEGS_PER_STEP_1 
-
+        ret = self.AnglePerSteps(1, 15.2588 * float(reg)*self.GetMircoSteps(1))
         self.log.debug("Axis1_GetMaxSpeed %f degs/s", ret)
         return ret
  
 ###############################################
 # Testing
-import logging
+import logging, time
 
 def main():
     print("Class Motors")
@@ -148,59 +118,48 @@ def main():
     if not m.isInitialized:
         return
     
+    print(m.GetStatusErrorBitsMsg(0))
+      
     m.SoftStop(0)
-    m.SoftStop(1)
+    m.WaitIsBusy(0)
 
     max_speed_0 = m.Axis0_GetMaxSpeed()
     print(max_speed_0)
-    
-    max_speed_1 = m.Axis1_GetMaxSpeed()
-    print(max_speed_1)
 
-    m.Axis0_SetAngle(0)    
-    print(m.Axis0_Angle())    
-    t = time.time()
-    m.Axis0_SlewTo(1)
-    m.WaitIsBusy(0)
-    print("Axis 0 " + str(time.time() - t) + "s")
+    # m.Axis0_Run(-360/86400)
+    # time.sleep(30)
+    # m.Axis0_SoftStop()
+    # m.WaitIsBusy(0)
 
-    m.Axis1_SetAngle(0)
-    print(m.Axis1_Angle())
-    t = time.time()
-    m.Axis1_SlewTo(1)
-    m.WaitIsBusy(1)
-    print("Axis 1 " + str(time.time() - t) + "s")
+    # m.Axis0_SetAngle(0)
+    # print(m.GetStatusErrorBitsMsg(0))
+    # for i in range(10):
+    #     print(m.Axis0_Angle())    
+    #     m.Axis0_SlewTo(1/120)
+    #     m.WaitIsBusy(0)
+    #     print(m.GetStatusErrorBitsMsg(0))
+    #     print(m.Axis0_Angle())
+    #     time.sleep(1)
 
-    m.Axis0_SlewTo(1)
-    m.Axis1_SlewTo(1)
+    #     m.Axis0_SlewTo(-1/120)
+    #     m.WaitIsBusy(0)
+    #     print(m.GetStatusErrorBitsMsg(0))
+    #     print(m.Axis0_Angle())
+    #     time.sleep(1)
 
-    m.WaitIsBusy(0)
-    m.WaitIsBusy(1)
+    m.Axis0_SetAngle(0)
 
-    print(m.Axis0_Angle())
-    print(m.Axis1_Angle())
-
- #   m.Axis0_SlewTo(359)
- #   m.Axis1_SlewTo(-2)
-
- #   m.WaitIsBusy(0)
- #   m.WaitIsBusy(1)
-
- #   print(m.Axis0_Angle())
- #   print(m.Axis1_Angle())
-
- #   m.Axis0_SlewTo(0)
- #   m.Axis1_SlewTo(0)
-
- #   m.WaitIsBusy(0)
- #   m.WaitIsBusy(1)
-
- #   print(m.Axis0_Angle())
- #   print(m.Axis1_Angle())
-
-    print(m.GetStatusErrorBitsMsg(0))
-    print(m.GetStatusErrorBitsMsg(1))
-
+    for i in range(1):
+        print(m.Axis0_Angle())
+        m.Axis0_SlewTo(1)
+        m.WaitIsBusy(0)
+        print(m.Axis0_Angle())
+        m.Axis0_SlewTo(-1)
+        m.WaitIsBusy(0)
+        print(m.Axis0_Angle()) 
+        m.Axis0_SlewTo(0)
+        m.WaitIsBusy(0)
+        print(m.Axis0_Angle()) 
 import time
 
 if __name__ == "__main__":
